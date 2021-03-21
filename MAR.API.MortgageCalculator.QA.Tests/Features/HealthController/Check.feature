@@ -2,8 +2,9 @@
 	Health check feature of the API
 
 @HealthControllerTests
-Scenario: Add two numbers
-	Given I have the configured
-	And the second number is 70
-	When the two numbers are added
-	Then the result should be 120
+Scenario: Health Check endpoint returns successful
+	Given I want to call the API HealthController 'check' resource
+	When I call the API using GET and the url
+	Then the API HTTP response is successful
+	And the API HTTP domain response data is correct
+	And the API HTTP response Data is null

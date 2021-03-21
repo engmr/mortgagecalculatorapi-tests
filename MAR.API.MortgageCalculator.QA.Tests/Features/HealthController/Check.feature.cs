@@ -80,16 +80,16 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Features.HealthController
             this.TestTearDown();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Add two numbers")]
+        [Xunit.SkippableFactAttribute(DisplayName="Health Check endpoint returns successful")]
         [Xunit.TraitAttribute("FeatureTitle", "Check")]
-        [Xunit.TraitAttribute("Description", "Add two numbers")]
+        [Xunit.TraitAttribute("Description", "Health Check endpoint returns successful")]
         [Xunit.TraitAttribute("Category", "HealthControllerTests")]
-        public virtual void AddTwoNumbers()
+        public virtual void HealthCheckEndpointReturnsSuccessful()
         {
             string[] tagsOfScenario = new string[] {
                     "HealthControllerTests"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Add two numbers", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Health Check endpoint returns successful", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
 #line 5
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -111,16 +111,19 @@ this.ScenarioInitialize(scenarioInfo);
             {
                 this.ScenarioStart();
 #line 6
- testRunner.Given("I have the configured", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+ testRunner.Given("I want to call the API HealthController \'check\' resource", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
 #line 7
- testRunner.And("the second number is 70", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+ testRunner.When("I call the API using GET and the url", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 8
- testRunner.When("the two numbers are added", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+ testRunner.Then("the API HTTP response is successful", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 9
- testRunner.Then("the result should be 120", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+ testRunner.And("the API HTTP domain response data is correct", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 10
+ testRunner.And("the API HTTP response Data is null", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();

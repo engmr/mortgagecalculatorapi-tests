@@ -1,25 +1,21 @@
 ﻿using TechTalk.SpecFlow;
+using Xunit.Abstractions;
 
 namespace MAR.API.MortgageCalculator.QA.Tests.Steps
 {
     [Binding]
     public sealed class HealthControllerSteps : BaseApiSteps
     {
-        public HealthControllerSteps(ScenarioContext scenarioContext)
-            : base(scenarioContext)
+        public HealthControllerSteps(ITestOutputHelper testConsole, FeatureContext featureContext, ScenarioContext scenarioContext)
+            : base(testConsole, featureContext, scenarioContext)
         {
         }
 
-        [Given("the first number is (.*)")]
-        public void GivenTheFirstNumberIs(int number)
+        [Given(@"I want to call the API HealthController '(.*)' resource")]
+        public void GivenIWantToCallTheAPIHealthControllerResource(string resourceInput)
         {
-            //TODO: implement arrange (precondition) logic
-            // For storing and retrieving scenario-specific data see https://go.specflow.org/doc-sharingdata
-            // To use the multiline text or the table argument of the scenario,
-            // additional string/Table parameters can be defined on the step definition
-            // method. 
-
-            TheScenarioContext.Pending();
+            SetAPIUrlFromControllerAndResource("health", resourceInput);
         }
+
     }
 }
