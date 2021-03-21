@@ -1,6 +1,9 @@
 ﻿using FluentAssertions;
+using MAR.API.MortgageCalculator.QA.Tests.Model;
+using Newtonsoft.Json;
 using System;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using TechTalk.SpecFlow;
 using Xunit.Abstractions;
@@ -23,9 +26,36 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             using (var httpClient = new HttpClient())
             {
                 var getTask = Task.Run(() => httpClient.GetAsync(apiUrl));
-                getTask.Wait(15000);
-                var response = getTask.Result;
-                UpsertScenarioContextEntry(TestingContextKeys.ApiResponseKey, response);
+                var timedOut = !getTask.Wait(ApiCallTimeout);
+                if (!timedOut)
+                {
+                    var response = getTask.Result;
+                    UpsertScenarioContextEntry(TestingContextKeys.ApiResponseKey, response);
+                    return;
+                }
+                throw new TimeoutException($"GET Request to '{apiUrl}' timed out ({ApiCallTimeout} ms).");
+            }
+        }
+
+        [When(@"I call the API using POST, the url and the request")]
+        public void WhenICallTheAPIUsingPOSTTheUrlAndTheRequest()
+        {
+            var apiUrl = GetScenarioContextItem<string>(TestingContextKeys.ApiFullUrlKey);
+            apiUrl.Should().NotBeNullOrWhiteSpace();
+            var apiRequest = GetScenarioContextItem<MortgageCalculationRequest>(TestingContextKeys.ApiRequestKey);
+            apiRequest.Should().NotBeNull();
+            using (var httpClient = new HttpClient())
+            {
+                var httpContent = new StringContent(JsonConvert.SerializeObject(apiRequest), Encoding.UTF8, "application/json");
+                var postTask = Task.Run(() => httpClient.PostAsync(apiUrl, httpContent));
+                var timedOut = !postTask.Wait(ApiCallTimeout);
+                if (!timedOut)
+                {
+                    var response = postTask.Result;
+                    UpsertScenarioContextEntry(TestingContextKeys.ApiResponseKey, response);
+                    return;
+                }
+                throw new TimeoutException($"POST Request to '{apiUrl}' timed out ({ApiCallTimeout} ms).");
             }
         }
 
@@ -34,6 +64,7 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
         {
             var apiHttpResponseMessage = GetScenarioContextItem<HttpResponseMessage>(TestingContextKeys.ApiResponseKey);
             apiHttpResponseMessage.Should().NotBeNull();
+            TestConsole.WriteLine("\t" + $"API status code: {(int)apiHttpResponseMessage.StatusCode} ({apiHttpResponseMessage.StatusCode})");
             apiHttpResponseMessage.IsSuccessStatusCode.Should().BeTrue();
             apiHttpResponseMessage.Content.Should().NotBeNull();
         }
@@ -55,6 +86,5 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             var httpResponseResponse = GetApiResponseFromHttpResponseMessage();
             httpResponseResponse.Data.Should().BeNull();
         }
-
     }
 }

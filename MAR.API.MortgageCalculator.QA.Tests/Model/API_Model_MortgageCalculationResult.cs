@@ -6,9 +6,9 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Model
 {
     public class MortgageCalculationResult
     {
-        public MortgageCalculationRequest Request { get; }
-        public List<string> Errors { get; }
-        public List<string> ValidationErrors { get; }
+        public MortgageCalculationRequest Request { get; set;  }
+        public List<string> Errors { get; set; }
+        public List<string> ValidationErrors { get; set; }
         public bool IsSuccessful
         {
             get
@@ -16,6 +16,13 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Model
                 return (Errors == null ? true : !Errors.Any())
                     && (ValidationErrors == null ? true : !ValidationErrors.Any());
             }
+        }
+
+        //Only use this for testing
+        public MortgageCalculationResult()
+        {
+            ValidationErrors = new List<string>();
+            Errors = new List<string>();
         }
         public MortgageCalculationResult(MortgageCalculationRequest request)
         {
