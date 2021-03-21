@@ -16,6 +16,5 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
         {
             SetAPIUrlFromControllerAndResource("health", resourceInput);
         }
-
     }
 }

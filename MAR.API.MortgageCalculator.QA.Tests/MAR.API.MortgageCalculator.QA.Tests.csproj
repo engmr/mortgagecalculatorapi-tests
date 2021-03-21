@@ -39,10 +39,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Features\CalculateController\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Resource Include="appSettings.testing.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>

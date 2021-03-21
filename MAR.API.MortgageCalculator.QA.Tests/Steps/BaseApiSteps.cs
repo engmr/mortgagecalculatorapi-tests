@@ -16,6 +16,10 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
         protected FeatureContext TheFeatureContext;
         protected ScenarioContext TheScenarioContext;
 
+        /// <summary>
+        /// In ms.
+        /// </summary>
+        protected const int ApiCallTimeout = 15000;
         public BaseApiSteps(ITestOutputHelper testConsole, FeatureContext featureContext, ScenarioContext scenarioContext)
         {
             TestConsole = testConsole;
@@ -33,12 +37,16 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             var appSettings = GetAppSettings();
             appSettings.Should().NotBeNull();
             controllerInput.Should().NotBeNullOrWhiteSpace();
-            resourceInput.Should().NotBeNullOrWhiteSpace();
+            resourceInput.Should().NotBeNull();
             var sanitizedController = controllerInput
+                .Trim()
                 .Replace(@"\", string.Empty)
                 .Replace("/", string.Empty);
-            var sanitizedResource = resourceInput.Replace(@"\", "/");
-            sanitizedResource = sanitizedResource.IndexOf("/") == 0
+            var sanitizedResource = resourceInput
+                .Trim()
+                .Replace(@"\", "/");
+            sanitizedResource = sanitizedResource
+                .IndexOf("/") == 0
                 ? sanitizedResource[1..]
                 : sanitizedResource;
             var apiUrl = Path.Combine(
@@ -61,7 +69,7 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
         }
 
         /// <summary>
-        /// Returns <see cref="ApiResponse{T}"/> from an <see cref="HttpResponseMessage"/>
+        /// Returns <see cref="ApiResponse{object}"/> from an <see cref="HttpResponseMessage"/>
         /// </summary>
         /// <returns></returns>
         protected ApiResponse<object> GetApiResponseFromHttpResponseMessage()
@@ -73,6 +81,22 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             var httpResponseJson = readTask.Result;
             httpResponseJson.Should().NotBeNullOrWhiteSpace();
             return JsonConvert.DeserializeObject<ApiResponse<object>>(httpResponseJson);
+        }
+
+        /// <summary>
+        /// Returns <see cref="ApiResponse{MortgageCalculationResult}"/> from an <see cref="HttpResponseMessage"/>
+        /// </summary>
+        /// <returns></returns>
+        protected ApiResponse<MortgageCalculationResult> GetMortgageCalculationResultApiResponseFromHttpResponseMessage()
+        {
+            var apiHttpResponseMessage = GetScenarioContextItem<HttpResponseMessage>(TestingContextKeys.ApiResponseKey);
+            apiHttpResponseMessage.Should().NotBeNull();
+            var readTask = Task.Run(() => apiHttpResponseMessage.Content.ReadAsStringAsync());
+            readTask.Wait(2000);
+            var httpResponseJson = readTask.Result;
+            httpResponseJson.Should().NotBeNullOrEmpty();
+
+            return JsonConvert.DeserializeObject<ApiResponse<MortgageCalculationResult>>(httpResponseJson);
         }
 
         /// <summary>
