@@ -108,6 +108,33 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             }
         }
 
+        protected void CallTheAPIUsingPOSTTheUrlTheHeadersAndTheRequest()
+        {
+            var apiUrl = GetScenarioContextItem<string>(TestingSpecflowContextKeys.ApiFullUrlKey);
+            apiUrl.Should().NotBeNullOrWhiteSpace();
+            var apiRequestHeaders = GetScenarioContextItem<Dictionary<string, string>>(TestingSpecflowContextKeys.ApiRequestHeadersKey);
+            apiRequestHeaders.Should().NotBeNull().And.NotBeEmpty();
+            var apiRequest = GetScenarioContextItem<MortgageCalculationRequest>(TestingSpecflowContextKeys.ApiRequestKey);
+            apiRequest.Should().NotBeNull();
+            using (var httpClient = new HttpClient())
+            {
+                foreach (var headerKVP in apiRequestHeaders)
+                {
+                    httpClient.DefaultRequestHeaders.Add(headerKVP.Key, headerKVP.Value);
+                }
+
+                var httpContent = new StringContent(JsonConvert.SerializeObject(apiRequest), Encoding.UTF8, "application/json");
+                var postTask = Task.Run(() => httpClient.PostAsync(apiUrl, httpContent));
+                var timedOut = !postTask.Wait(ApiCallTimeout);
+                if (!timedOut)
+                {
+                    var response = postTask.Result;
+                    UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, response);
+                    return;
+                }
+                throw new TimeoutException($"POST Request (with headers) to '{apiUrl}' timed out ({ApiCallTimeout} ms).");
+            }
+        }
         protected void CallTheAPIUsingGETTheUrlAndTheHeaders()
         {
             var apiUrl = GetScenarioContextItem<string>(TestingSpecflowContextKeys.ApiFullUrlKey);

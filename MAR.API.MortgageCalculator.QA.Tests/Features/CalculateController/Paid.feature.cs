@@ -113,7 +113,14 @@ this.ScenarioInitialize(scenarioInfo);
             {
                 this.ScenarioStart();
 #line 6
- testRunner.Given("I want to call the API CalculateController \'\' resource", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+ testRunner.Given("I issue an authorization token successfully to ScenarioContext", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 7
+ testRunner.And("I want to call the API CalculateController \'\' resource", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 8
+ testRunner.And("with the correct API authorization headers setup for an endpoint requiring author" +
+                        "ization from ScenarioContext", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table5 = new TechTalk.SpecFlow.Table(new string[] {
                             "Field",
@@ -139,16 +146,16 @@ this.ScenarioInitialize(scenarioInfo);
                 table5.AddRow(new string[] {
                             "HOAMonthly",
                             "10"});
-#line 7
+#line 9
  testRunner.And("with this API MortgageCalculationRequest", ((string)(null)), table5, "And ");
 #line hidden
-#line 16
- testRunner.When("I call the API using POST, the url and the request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line 18
+ testRunner.When("I call the API using POST, the url, the headers and the request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 17
+#line 19
  testRunner.Then("the API HTTP response is successful", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 18
+#line 20
  testRunner.And("the API HTTP domain response data is correct", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table6 = new TechTalk.SpecFlow.Table(new string[] {
@@ -169,7 +176,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table6.AddRow(new string[] {
                             "TermInterestPaid",
                             "37573.46"});
-#line 19
+#line 21
  testRunner.And("the API HTTP response Data matches this successful MortgageCalculationResult", ((string)(null)), table6, "And ");
 #line hidden
             }
@@ -186,7 +193,7 @@ this.ScenarioInitialize(scenarioInfo);
                     "CalculateControllerTests"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Calculate (paid) endpoint returns successful response for request without HOA", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
-#line 28
+#line 30
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -206,8 +213,15 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 this.ScenarioStart();
-#line 29
- testRunner.Given("I want to call the API CalculateController \'\' resource", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line 31
+ testRunner.Given("I issue an authorization token successfully to ScenarioContext", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 32
+ testRunner.And("I want to call the API CalculateController \'\' resource", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 33
+ testRunner.And("with the correct API authorization headers setup for an endpoint requiring author" +
+                        "ization from ScenarioContext", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table7 = new TechTalk.SpecFlow.Table(new string[] {
                             "Field",
@@ -233,16 +247,16 @@ this.ScenarioInitialize(scenarioInfo);
                 table7.AddRow(new string[] {
                             "HOAMonthly",
                             "0"});
-#line 30
+#line 34
  testRunner.And("with this API MortgageCalculationRequest", ((string)(null)), table7, "And ");
 #line hidden
-#line 39
- testRunner.When("I call the API using POST, the url and the request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line 43
+ testRunner.When("I call the API using POST, the url, the headers and the request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 40
+#line 44
  testRunner.Then("the API HTTP response is successful", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 41
+#line 45
  testRunner.And("the API HTTP domain response data is correct", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table8 = new TechTalk.SpecFlow.Table(new string[] {
@@ -263,7 +277,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table8.AddRow(new string[] {
                             "TermInterestPaid",
                             "37573.46"});
-#line 42
+#line 46
  testRunner.And("the API HTTP response Data matches this successful MortgageCalculationResult", ((string)(null)), table8, "And ");
 #line hidden
             }

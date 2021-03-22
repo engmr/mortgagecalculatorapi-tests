@@ -29,7 +29,14 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
         {
             CallTheAPIUsingPOSTTheUrlAndTheHeaders();
         }
-        
+
+        [Given(@"I call the API using POST, the url, the headers and the request")]
+        [When(@"I call the API using POST, the url, the headers and the request")]
+        public void WhenICallTheAPIUsingPOSTTheUrlTheHeadersAndTheRequest()
+        {
+            CallTheAPIUsingPOSTTheUrlTheHeadersAndTheRequest();
+        }
+
         [Given(@"I call the API using GET, the url and the headers")]
         [When(@"I call the API using GET, the url and the headers")]
         public void WhenICallTheAPIUsingGETTheUrlAndTheHeaders()
