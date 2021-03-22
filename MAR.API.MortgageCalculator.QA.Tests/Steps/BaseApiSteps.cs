@@ -2,8 +2,11 @@
 using MAR.API.MortgageCalculator.QA.Tests.Model;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using TechTalk.SpecFlow;
 using Xunit.Abstractions;
@@ -56,7 +59,217 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
                 );
             var apiUri = new Uri(apiUrl.Replace(@"\", "/"));
             TestConsole.WriteLine("\t" + $"Full API Url: {apiUri.AbsoluteUri}");
-            UpsertScenarioContextEntry(TestingContextKeys.ApiFullUrlKey, apiUri.AbsoluteUri);
+            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiFullUrlKey, apiUri.AbsoluteUri);
+        }
+
+        protected void CallTheAPIUsingPOSTTheUrlAndTheHeaders()
+        {
+            var apiUrl = GetScenarioContextItem<string>(TestingSpecflowContextKeys.ApiFullUrlKey);
+            apiUrl.Should().NotBeNullOrWhiteSpace();
+            var apiRequestHeaders = GetScenarioContextItem<Dictionary<string, string>>(TestingSpecflowContextKeys.ApiRequestHeadersKey);
+            apiRequestHeaders.Should().NotBeNull().And.NotBeEmpty();
+            using (var httpClient = new HttpClient())
+            {
+                foreach (var headerKVP in apiRequestHeaders)
+                {
+                    httpClient.DefaultRequestHeaders.Add(headerKVP.Key, headerKVP.Value);
+                }
+
+                var postTask = Task.Run(() => httpClient.PostAsync(apiUrl, null));
+                var timedOut = !postTask.Wait(ApiCallTimeout);
+                if (!timedOut)
+                {
+                    var response = postTask.Result;
+                    UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, response);
+                    return;
+                }
+                throw new TimeoutException($"POST Request (with headers) to '{apiUrl}' timed out ({ApiCallTimeout} ms).");
+            }
+        }
+
+        protected void CallTheAPIUsingPOSTTheUrlAndTheRequest()
+        {
+            var apiUrl = GetScenarioContextItem<string>(TestingSpecflowContextKeys.ApiFullUrlKey);
+            apiUrl.Should().NotBeNullOrWhiteSpace();
+            var apiRequest = GetScenarioContextItem<object>(TestingSpecflowContextKeys.ApiRequestKey);
+            apiRequest.Should().NotBeNull();
+            using (var httpClient = new HttpClient())
+            {
+                var httpContent = new StringContent(JsonConvert.SerializeObject(apiRequest), Encoding.UTF8, "application/json");
+                var postTask = Task.Run(() => httpClient.PostAsync(apiUrl, httpContent));
+                var timedOut = !postTask.Wait(ApiCallTimeout);
+                if (!timedOut)
+                {
+                    var response = postTask.Result;
+                    UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, response);
+                    return;
+                }
+                throw new TimeoutException($"POST Request (with body) to '{apiUrl}' timed out ({ApiCallTimeout} ms).");
+            }
+        }
+
+        protected void CallTheAPIUsingPOSTTheUrlTheHeadersAndTheRequest()
+        {
+            var apiUrl = GetScenarioContextItem<string>(TestingSpecflowContextKeys.ApiFullUrlKey);
+            apiUrl.Should().NotBeNullOrWhiteSpace();
+            var apiRequestHeaders = GetScenarioContextItem<Dictionary<string, string>>(TestingSpecflowContextKeys.ApiRequestHeadersKey);
+            apiRequestHeaders.Should().NotBeNull().And.NotBeEmpty();
+            var apiRequest = GetScenarioContextItem<object>(TestingSpecflowContextKeys.ApiRequestKey);
+            apiRequest.Should().NotBeNull();
+            using (var httpClient = new HttpClient())
+            {
+                foreach (var headerKVP in apiRequestHeaders)
+                {
+                    httpClient.DefaultRequestHeaders.Add(headerKVP.Key, headerKVP.Value);
+                }
+
+                var httpContent = new StringContent(JsonConvert.SerializeObject(apiRequest), Encoding.UTF8, "application/json");
+                var postTask = Task.Run(() => httpClient.PostAsync(apiUrl, httpContent));
+                var timedOut = !postTask.Wait(ApiCallTimeout);
+                if (!timedOut)
+                {
+                    var response = postTask.Result;
+                    UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, response);
+                    return;
+                }
+                throw new TimeoutException($"POST Request (with headers) to '{apiUrl}' timed out ({ApiCallTimeout} ms).");
+            }
+        }
+        protected void CallTheAPIUsingGETTheUrlAndTheHeaders()
+        {
+            var apiUrl = GetScenarioContextItem<string>(TestingSpecflowContextKeys.ApiFullUrlKey);
+            apiUrl.Should().NotBeNullOrWhiteSpace();
+            var apiRequestHeaders = GetScenarioContextItem<Dictionary<string, string>>(TestingSpecflowContextKeys.ApiRequestHeadersKey);
+            apiRequestHeaders.Should().NotBeNull().And.NotBeEmpty();
+            using (var httpClient = new HttpClient())
+            {
+                foreach (var headerKVP in apiRequestHeaders)
+                {
+                    httpClient.DefaultRequestHeaders.Add(headerKVP.Key, headerKVP.Value);
+                }
+
+                var getTask = Task.Run(() => httpClient.GetAsync(apiUrl));
+                var timedOut = !getTask.Wait(ApiCallTimeout);
+                if (!timedOut)
+                {
+                    var response = getTask.Result;
+                    UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, response);
+                    return;
+                }
+                throw new TimeoutException($"GET Request to '{apiUrl}' timed out ({ApiCallTimeout} ms).");
+            }
+        }
+
+        protected void CallTheAPIUsingGETAndTheUrl()
+        {
+            var apiUrl = GetScenarioContextItem<string>(TestingSpecflowContextKeys.ApiFullUrlKey);
+            apiUrl.Should().NotBeNullOrWhiteSpace();
+            using (var httpClient = new HttpClient())
+            {
+                var getTask = Task.Run(() => httpClient.GetAsync(apiUrl));
+                var timedOut = !getTask.Wait(ApiCallTimeout);
+                if (!timedOut)
+                {
+                    var response = getTask.Result;
+                    UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, response);
+                    return;
+                }
+                throw new TimeoutException($"GET Request to '{apiUrl}' timed out ({ApiCallTimeout} ms).");
+            }
+        }
+
+        protected void CallTheAPIUsingPOSTAndTheUrl()
+        {
+            var apiUrl = GetScenarioContextItem<string>(TestingSpecflowContextKeys.ApiFullUrlKey);
+            apiUrl.Should().NotBeNullOrWhiteSpace();
+            using (var httpClient = new HttpClient())
+            {
+                var postTask = Task.Run(() => httpClient.PostAsync(apiUrl, null));
+                var timedOut = !postTask.Wait(ApiCallTimeout);
+                if (!timedOut)
+                {
+                    var response = postTask.Result;
+                    UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, response);
+                    return;
+                }
+                throw new TimeoutException($"POST Request (no headers/body) to '{apiUrl}' timed out ({ApiCallTimeout} ms).");
+            }
+        }
+
+        protected void AssertTheAPIHttpResponseIsSuccessful()
+        {
+            var apiHttpResponseMessage = GetScenarioContextItem<HttpResponseMessage>(TestingSpecflowContextKeys.ApiResponseKey);
+            apiHttpResponseMessage.Should().NotBeNull();
+            TestConsole.WriteLine("\t" + $"API status code: {(int)apiHttpResponseMessage.StatusCode} ({apiHttpResponseMessage.StatusCode})");
+            apiHttpResponseMessage.IsSuccessStatusCode.Should().BeTrue();
+            apiHttpResponseMessage.Content.Should().NotBeNull();
+        }
+
+        protected void AssertTheAPIHttpResponseIsUnauthorized()
+        {
+            var apiHttpResponseMessage = GetScenarioContextItem<HttpResponseMessage>(TestingSpecflowContextKeys.ApiResponseKey);
+            apiHttpResponseMessage.Should().NotBeNull();
+            TestConsole.WriteLine("\t" + $"API status code: {(int)apiHttpResponseMessage.StatusCode} ({apiHttpResponseMessage.StatusCode})");
+            apiHttpResponseMessage.IsSuccessStatusCode.Should().BeFalse();
+            apiHttpResponseMessage.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+            apiHttpResponseMessage.Content.Should().NotBeNull();
+        }
+
+        protected void AssertTheAPIHttpResponseIsBadRequest()
+        {
+            var apiHttpResponseMessage = GetScenarioContextItem<HttpResponseMessage>(TestingSpecflowContextKeys.ApiResponseKey);
+            apiHttpResponseMessage.Should().NotBeNull();
+            TestConsole.WriteLine("\t" + $"API status code: {(int)apiHttpResponseMessage.StatusCode} ({apiHttpResponseMessage.StatusCode})");
+            apiHttpResponseMessage.IsSuccessStatusCode.Should().BeFalse();
+            apiHttpResponseMessage.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            apiHttpResponseMessage.Content.Should().NotBeNull();
+        }
+
+        protected void AssertTheAPIHttpDomainResponseDataIsCorrect()
+        {
+            var httpResponseResponse = GetApiResponseFromHttpResponseMessage();
+            var appSettings = GetAppSettings();
+            httpResponseResponse.ResponseDateTime.Should().NotBeSameDateAs(DateTime.MinValue);
+            httpResponseResponse.APIVersion.Should().Be(appSettings.ApiResponseApiVersion);
+            httpResponseResponse.ApplicationName.Should().Be(appSettings.ApiResponseApplicationName);
+            httpResponseResponse.TransactionId.Should().NotBeEmpty();
+        }
+
+        protected void AssertTheAPIHttpResponseDataIsNull()
+        {
+            var httpResponseResponse = GetApiResponseFromHttpResponseMessage();
+            httpResponseResponse.Data.Should().BeNull();
+        }
+
+        protected void AssertTheAPIHTTPResponseDataIsAValidGuid()
+        {
+            var responseDataString = GetTheAuthorizationTokenFromHttpResponseMessage();
+            responseDataString.Should().NotBeNullOrWhiteSpace();
+            Guid.TryParse(responseDataString, out Guid responseGuid).Should().BeTrue("the response Data string should be a Guid");
+            responseGuid.Should().NotBeEmpty();
+        }
+
+        protected void AssertTheAPIHTTPResponseDataIsExpected(bool expected)
+        {
+            var httpResponseResponse = GetApiResponseFromHttpResponseMessage();
+            var responseDataBool = httpResponseResponse.Data as bool?;
+            responseDataBool.Should().HaveValue().And.Be(expected);
+        }
+
+        protected string GetTheAuthorizationTokenFromHttpResponseMessage()
+        {
+            var httpResponseResponse = GetApiResponseFromHttpResponseMessage();
+            return httpResponseResponse.Data as string;
+        }
+
+        protected string GetAuthorizationTokenFromScenarioContext()
+        {
+            return GetScenarioContextItem<string>(TestingSpecflowContextKeys.AuthorizationTokenKey);
+        }
+
+        protected string GetAuthorizationTokenFromFeatureContext()
+        {
+            return GetFeatureContextItem<string>(TestingSpecflowContextKeys.AuthorizationTokenKey);
         }
 
         /// <summary>
@@ -65,7 +278,7 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
         /// <returns></returns>
         protected AppSettings GetAppSettings()
         {
-            return GetFeatureContextItem<AppSettings>(TestingContextKeys.AppSettingsKey);
+            return GetFeatureContextItem<AppSettings>(TestingSpecflowContextKeys.AppSettingsKey);
         }
 
         /// <summary>
@@ -74,7 +287,7 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
         /// <returns></returns>
         protected ApiResponse<object> GetApiResponseFromHttpResponseMessage()
         {
-            var apiHttpResponseMessage = GetScenarioContextItem<HttpResponseMessage>(TestingContextKeys.ApiResponseKey);
+            var apiHttpResponseMessage = GetScenarioContextItem<HttpResponseMessage>(TestingSpecflowContextKeys.ApiResponseKey);
             apiHttpResponseMessage.Should().NotBeNull();
             var readTask = Task.Run(() => apiHttpResponseMessage.Content.ReadAsStringAsync());
             readTask.Wait(2000);
@@ -89,7 +302,7 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
         /// <returns></returns>
         protected ApiResponse<MortgageCalculationResult> GetMortgageCalculationResultApiResponseFromHttpResponseMessage()
         {
-            var apiHttpResponseMessage = GetScenarioContextItem<HttpResponseMessage>(TestingContextKeys.ApiResponseKey);
+            var apiHttpResponseMessage = GetScenarioContextItem<HttpResponseMessage>(TestingSpecflowContextKeys.ApiResponseKey);
             apiHttpResponseMessage.Should().NotBeNull();
             var readTask = Task.Run(() => apiHttpResponseMessage.Content.ReadAsStringAsync());
             readTask.Wait(2000);

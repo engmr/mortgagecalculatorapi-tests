@@ -15,7 +15,7 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Hooks
                 .Build();
             var appSettings = new AppSettings();
             config.GetSection("AppSettings").Bind(appSettings);
-            featureContext.Add(TestingContextKeys.AppSettingsKey, appSettings);
+            featureContext.Add(TestingSpecflowContextKeys.AppSettingsKey, appSettings);
         }
     }
 }
