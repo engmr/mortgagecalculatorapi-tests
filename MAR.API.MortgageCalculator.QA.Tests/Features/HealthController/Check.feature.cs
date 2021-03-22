@@ -84,10 +84,12 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Features.HealthController
         [Xunit.TraitAttribute("FeatureTitle", "Check")]
         [Xunit.TraitAttribute("Description", "Health Check endpoint returns successful")]
         [Xunit.TraitAttribute("Category", "HealthControllerTests")]
+        [Xunit.TraitAttribute("Category", "DeploymentSmokeTests")]
         public virtual void HealthCheckEndpointReturnsSuccessful()
         {
             string[] tagsOfScenario = new string[] {
-                    "HealthControllerTests"};
+                    "HealthControllerTests",
+                    "DeploymentSmokeTests"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Health Check endpoint returns successful", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
 #line 5

@@ -84,10 +84,12 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Features.CalculateController
         [Xunit.TraitAttribute("FeatureTitle", "Paid")]
         [Xunit.TraitAttribute("Description", "Calculate (paid) endpoint returns successful response for request with HOA")]
         [Xunit.TraitAttribute("Category", "CalculateControllerTests")]
+        [Xunit.TraitAttribute("Category", "DeploymentSmokeTests")]
         public virtual void CalculatePaidEndpointReturnsSuccessfulResponseForRequestWithHOA()
         {
             string[] tagsOfScenario = new string[] {
-                    "CalculateControllerTests"};
+                    "CalculateControllerTests",
+                    "DeploymentSmokeTests"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Calculate (paid) endpoint returns successful response for request with HOA", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
 #line 5

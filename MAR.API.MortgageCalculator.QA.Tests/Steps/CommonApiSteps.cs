@@ -1,11 +1,4 @@
-﻿using FluentAssertions;
-using MAR.API.MortgageCalculator.QA.Tests.Model;
-using Newtonsoft.Json;
-using System;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
-using TechTalk.SpecFlow;
+﻿using TechTalk.SpecFlow;
 using Xunit.Abstractions;
 
 namespace MAR.API.MortgageCalculator.QA.Tests.Steps
@@ -21,70 +14,78 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
         [When(@"I call the API using GET and the url")]
         public void WhenICallTheAPIUsingGETAndTheUrl()
         {
-            var apiUrl = GetScenarioContextItem<string>(TestingContextKeys.ApiFullUrlKey);
-            apiUrl.Should().NotBeNullOrWhiteSpace();
-            using (var httpClient = new HttpClient())
-            {
-                var getTask = Task.Run(() => httpClient.GetAsync(apiUrl));
-                var timedOut = !getTask.Wait(ApiCallTimeout);
-                if (!timedOut)
-                {
-                    var response = getTask.Result;
-                    UpsertScenarioContextEntry(TestingContextKeys.ApiResponseKey, response);
-                    return;
-                }
-                throw new TimeoutException($"GET Request to '{apiUrl}' timed out ({ApiCallTimeout} ms).");
-            }
+            CallTheAPIUsingGETAndTheUrl();
         }
 
         [When(@"I call the API using POST, the url and the request")]
         public void WhenICallTheAPIUsingPOSTTheUrlAndTheRequest()
         {
-            var apiUrl = GetScenarioContextItem<string>(TestingContextKeys.ApiFullUrlKey);
-            apiUrl.Should().NotBeNullOrWhiteSpace();
-            var apiRequest = GetScenarioContextItem<MortgageCalculationRequest>(TestingContextKeys.ApiRequestKey);
-            apiRequest.Should().NotBeNull();
-            using (var httpClient = new HttpClient())
-            {
-                var httpContent = new StringContent(JsonConvert.SerializeObject(apiRequest), Encoding.UTF8, "application/json");
-                var postTask = Task.Run(() => httpClient.PostAsync(apiUrl, httpContent));
-                var timedOut = !postTask.Wait(ApiCallTimeout);
-                if (!timedOut)
-                {
-                    var response = postTask.Result;
-                    UpsertScenarioContextEntry(TestingContextKeys.ApiResponseKey, response);
-                    return;
-                }
-                throw new TimeoutException($"POST Request to '{apiUrl}' timed out ({ApiCallTimeout} ms).");
-            }
+            CallTheAPIUsingPOSTTheUrlAndTheRequest();
         }
 
+        [Given(@"I call the API using POST, the url and the headers")]
+        [When(@"I call the API using POST, the url and the headers")]
+        public void WhenICallTheAPIUsingPOSTTheUrlAndTheHeaders()
+        {
+            CallTheAPIUsingPOSTTheUrlAndTheHeaders();
+        }
+        
+        [Given(@"I call the API using GET, the url and the headers")]
+        [When(@"I call the API using GET, the url and the headers")]
+        public void WhenICallTheAPIUsingGETTheUrlAndTheHeaders()
+        {
+            CallTheAPIUsingGETTheUrlAndTheHeaders();
+        }
+
+        [When(@"I call the API using POST and the url")]
+        public void WhenICallTheAPIUsingPOSTAndTheUrl()
+        {
+            CallTheAPIUsingPOSTAndTheUrl();
+        }
+
+
+        [Given(@"the API HTTP response is successful")]
         [Then(@"the API HTTP response is successful")]
         public void ThenTheAPIHttpResponseIsSuccessful()
         {
-            var apiHttpResponseMessage = GetScenarioContextItem<HttpResponseMessage>(TestingContextKeys.ApiResponseKey);
-            apiHttpResponseMessage.Should().NotBeNull();
-            TestConsole.WriteLine("\t" + $"API status code: {(int)apiHttpResponseMessage.StatusCode} ({apiHttpResponseMessage.StatusCode})");
-            apiHttpResponseMessage.IsSuccessStatusCode.Should().BeTrue();
-            apiHttpResponseMessage.Content.Should().NotBeNull();
+            AssertTheAPIHttpResponseIsSuccessful();
+        }
+
+        [Then(@"the API HTTP response is unauthorized")]
+        public void ThenTheAPIHttpResponseIsUnauthorized()
+        {
+            AssertTheAPIHttpResponseIsUnauthorized();
+        }
+
+        [Then(@"the API HTTP response is bad request")]
+        public void ThenTheAPIHttpResponseIsBadRequest()
+        {
+            AssertTheAPIHttpResponseIsBadRequest();
         }
 
         [Then(@"the API HTTP domain response data is correct")]
         public void ThenTheAPIHttpDomainResponseDataIsCorrect()
         {
-            var httpResponseResponse = GetApiResponseFromHttpResponseMessage();
-            var appSettings = GetAppSettings();
-            httpResponseResponse.ResponseDateTime.Should().NotBeSameDateAs(DateTime.MinValue);
-            httpResponseResponse.APIVersion.Should().Be(appSettings.ApiResponseApiVersion);
-            httpResponseResponse.ApplicationName.Should().Be(appSettings.ApiResponseApplicationName);
-            httpResponseResponse.TransactionId.Should().NotBeEmpty();
+            AssertTheAPIHttpDomainResponseDataIsCorrect();
         }
 
         [Then(@"the API HTTP response Data is null")]
         public void ThenTheAPIHttpResponseDataIsNull()
         {
-            var httpResponseResponse = GetApiResponseFromHttpResponseMessage();
-            httpResponseResponse.Data.Should().BeNull();
+            AssertTheAPIHttpResponseDataIsNull();
+        }
+
+        [Given(@"the API HTTP response Data is a valid Guid")]
+        [Then(@"the API HTTP response Data is a valid Guid")]
+        public void ThenTheAPIHTTPResponseDataIsAValidGuid()
+        {
+            AssertTheAPIHTTPResponseDataIsAValidGuid();
+        }
+
+        [Then(@"the API HTTP response Data is bool '(.*)'")]
+        public void ThenTheAPIHttpResponseDataIs(bool expected)
+        {
+            AssertTheAPIHTTPResponseDataIsExpected(expected);
         }
     }
 }

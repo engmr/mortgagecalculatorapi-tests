@@ -25,13 +25,13 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
         public void GivenWithThisAPIMortgageCalculationRequest(Table table)
         {
             var request = table.CreateInstance<MortgageCalculationRequest>();
-            UpsertScenarioContextEntry(TestingContextKeys.ApiRequestKey, request);
+            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiRequestKey, request);
         }
 
         [Then(@"the API HTTP response Data matches this successful MortgageCalculationResult")]
         public void ThenTheAPIHTTPResponseDataMatchesThisSuccessfulMortgageCalculationResult(Table table)
         {
-            var request = GetScenarioContextItem<MortgageCalculationRequest>(TestingContextKeys.ApiRequestKey);
+            var request = GetScenarioContextItem<MortgageCalculationRequest>(TestingSpecflowContextKeys.ApiRequestKey);
             var inputResponse = table.CreateInstance<MortgageCalculationResult>();
             var expectedResponse = new ApiResponse<MortgageCalculationResult>()
             {

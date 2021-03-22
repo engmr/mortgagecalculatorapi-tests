@@ -1,7 +1,7 @@
 ﻿Feature: Paid
 	/Calculate endpoint
 
-@CalculateControllerTests
+@CalculateControllerTests @DeploymentSmokeTests
 Scenario: Calculate (paid) endpoint returns successful response for request with HOA
 	Given I want to call the API CalculateController '' resource
 	And with this API MortgageCalculationRequest
