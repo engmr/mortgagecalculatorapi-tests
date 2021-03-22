@@ -91,7 +91,7 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
         {
             var apiUrl = GetScenarioContextItem<string>(TestingSpecflowContextKeys.ApiFullUrlKey);
             apiUrl.Should().NotBeNullOrWhiteSpace();
-            var apiRequest = GetScenarioContextItem<MortgageCalculationRequest>(TestingSpecflowContextKeys.ApiRequestKey);
+            var apiRequest = GetScenarioContextItem<object>(TestingSpecflowContextKeys.ApiRequestKey);
             apiRequest.Should().NotBeNull();
             using (var httpClient = new HttpClient())
             {
@@ -114,7 +114,7 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             apiUrl.Should().NotBeNullOrWhiteSpace();
             var apiRequestHeaders = GetScenarioContextItem<Dictionary<string, string>>(TestingSpecflowContextKeys.ApiRequestHeadersKey);
             apiRequestHeaders.Should().NotBeNull().And.NotBeEmpty();
-            var apiRequest = GetScenarioContextItem<MortgageCalculationRequest>(TestingSpecflowContextKeys.ApiRequestKey);
+            var apiRequest = GetScenarioContextItem<object>(TestingSpecflowContextKeys.ApiRequestKey);
             apiRequest.Should().NotBeNull();
             using (var httpClient = new HttpClient())
             {
