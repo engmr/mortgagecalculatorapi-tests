@@ -1,4 +1,5 @@
-﻿using TechTalk.SpecFlow;
+﻿using MAR.API.MortgageCalculator.QA.Tests.Model;
+using TechTalk.SpecFlow;
 using Xunit.Abstractions;
 
 namespace MAR.API.MortgageCalculator.QA.Tests.Steps
@@ -70,6 +71,12 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             AssertTheAPIHttpResponseIsBadRequest();
         }
 
+        [Then(@"the API HTTP response is too many requests")]
+        public void ThenTheAPIHttpResponseIsTooManyRequests()
+        {
+            AssertTheAPIHttpResponseIsTooManyRequests();
+        }
+
         [Then(@"the API HTTP domain response data is correct")]
         public void ThenTheAPIHttpDomainResponseDataIsCorrect()
         {
@@ -93,6 +100,24 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
         public void ThenTheAPIHttpResponseDataIs(bool expected)
         {
             AssertTheAPIHTTPResponseDataIsExpected(expected);
+        }
+
+        [Then(@"the API HTTP response Content is string '(.*)'")]
+        public void ThenTheAPIHTTPResponseContentIsString(string expected)
+        {
+            AssertTheAPIHTTPResponseContentIsExpected(expected);
+        }
+
+        [Then(@"the API HTTP response Content is the API rate limited message from ScenarioContext")]
+        public void ThenTheAPIHTTPResponseContentIsTheAPIRateLimitedMessageFromScenarioContext()
+        {
+            AssertTheAPIHTTPResponseContentIsTheAPIRateLimitedMessage();
+        }
+
+        [Given(@"I am API rate limited to '(.*)'")]
+        public void GivenIAmAPIRateLimitedTo(ApiRateLimitingTimeInterval rateLimitedTimeSpan)
+        {
+            SetExpectedRateLimitingIntervalIntoScenarioContext(rateLimitedTimeSpan);
         }
     }
 }

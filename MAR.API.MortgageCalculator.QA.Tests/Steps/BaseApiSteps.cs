@@ -135,6 +135,7 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
                 throw new TimeoutException($"POST Request (with headers) to '{apiUrl}' timed out ({ApiCallTimeout} ms).");
             }
         }
+
         protected void CallTheAPIUsingGETTheUrlAndTheHeaders()
         {
             var apiUrl = GetScenarioContextItem<string>(TestingSpecflowContextKeys.ApiFullUrlKey);
@@ -225,6 +226,16 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             apiHttpResponseMessage.Content.Should().NotBeNull();
         }
 
+        protected void AssertTheAPIHttpResponseIsTooManyRequests()
+        {
+            var apiHttpResponseMessage = GetScenarioContextItem<HttpResponseMessage>(TestingSpecflowContextKeys.ApiResponseKey);
+            apiHttpResponseMessage.Should().NotBeNull();
+            TestConsole.WriteLine("\t" + $"API status code: {(int)apiHttpResponseMessage.StatusCode} ({apiHttpResponseMessage.StatusCode})");
+            apiHttpResponseMessage.IsSuccessStatusCode.Should().BeFalse();
+            apiHttpResponseMessage.StatusCode.Should().Be(HttpStatusCode.TooManyRequests);
+            apiHttpResponseMessage.Content.Should().NotBeNull();
+        }
+
         protected void AssertTheAPIHttpDomainResponseDataIsCorrect()
         {
             var httpResponseResponse = GetApiResponseFromHttpResponseMessage();
@@ -255,11 +266,31 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             var responseDataBool = httpResponseResponse.Data as bool?;
             responseDataBool.Should().HaveValue().And.Be(expected);
         }
+        
+        protected void AssertTheAPIHTTPResponseContentIsExpected(string expected)
+        {
+            var httpResponseResponse = GetStringContentFromHttpResponseMessage();
+            httpResponseResponse.Should().Be(expected);
+        }
+
+        protected void AssertTheAPIHTTPResponseContentIsTheAPIRateLimitedMessage()
+        {
+            var timeInterval = GetScenarioContextItem<ApiRateLimitingTimeInterval>(TestingSpecflowContextKeys.ApiRateLimitingTimeIntervalKey);
+            timeInterval.Should().NotBeNull();
+            var expected = string.Format(TestingConstants.ApiRateLimitingResponseMessageFormat, timeInterval.GetApiRateLimitingResponseBodySuffix());
+            AssertTheAPIHTTPResponseContentIsExpected(expected);
+        }
 
         protected string GetTheAuthorizationTokenFromHttpResponseMessage()
         {
             var httpResponseResponse = GetApiResponseFromHttpResponseMessage();
             return httpResponseResponse.Data as string;
+        }
+
+        protected void SetExpectedRateLimitingIntervalIntoScenarioContext(ApiRateLimitingTimeInterval timeInterval)
+        {
+            timeInterval.Should().NotBeNull();
+            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiRateLimitingTimeIntervalKey, timeInterval);
         }
 
         protected string GetAuthorizationTokenFromScenarioContext()
@@ -294,6 +325,21 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             var httpResponseJson = readTask.Result;
             httpResponseJson.Should().NotBeNullOrWhiteSpace();
             return JsonConvert.DeserializeObject<ApiResponse<object>>(httpResponseJson);
+        }
+
+        /// <summary>
+        /// Returns <see cref="string"/> from an <see cref="HttpResponseMessage"/>
+        /// </summary>
+        /// <returns></returns>
+        protected string GetStringContentFromHttpResponseMessage()
+        {
+            var apiHttpResponseMessage = GetScenarioContextItem<HttpResponseMessage>(TestingSpecflowContextKeys.ApiResponseKey);
+            apiHttpResponseMessage.Should().NotBeNull();
+            var readTask = Task.Run(() => apiHttpResponseMessage.Content.ReadAsStringAsync());
+            readTask.Wait(2000);
+            var httpsResponseString = readTask.Result;
+            httpsResponseString.Should().NotBeNullOrWhiteSpace();
+            return httpsResponseString;
         }
 
         /// <summary>

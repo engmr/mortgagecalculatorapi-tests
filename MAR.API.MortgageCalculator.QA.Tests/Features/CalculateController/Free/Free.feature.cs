@@ -84,10 +84,12 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Features.CalculateController.Free
         [Xunit.TraitAttribute("FeatureTitle", "Free")]
         [Xunit.TraitAttribute("Description", "Calculate (free) endpoint returns successful response for request with HOA")]
         [Xunit.TraitAttribute("Category", "CalculateControllerTests")]
+        [Xunit.TraitAttribute("Category", "DeploymentSmokeTests")]
         public virtual void CalculateFreeEndpointReturnsSuccessfulResponseForRequestWithHOA()
         {
             string[] tagsOfScenario = new string[] {
-                    "CalculateControllerTests"};
+                    "CalculateControllerTests",
+                    "DeploymentSmokeTests"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Calculate (free) endpoint returns successful response for request with HOA", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
 #line 5
@@ -263,6 +265,97 @@ this.ScenarioInitialize(scenarioInfo);
                             "37573.46"});
 #line 42
  testRunner.And("the API HTTP response Data matches this successful MortgageCalculationResult", ((string)(null)), table4, "And ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Calculate (free) endpoint returns too many requests")]
+        [Xunit.TraitAttribute("FeatureTitle", "Free")]
+        [Xunit.TraitAttribute("Description", "Calculate (free) endpoint returns too many requests")]
+        [Xunit.TraitAttribute("Category", "CalculateControllerTests")]
+        [Xunit.TraitAttribute("Category", "RateLimitingTests")]
+        public virtual void CalculateFreeEndpointReturnsTooManyRequests()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "CalculateControllerTests",
+                    "RateLimitingTests"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Calculate (free) endpoint returns too many requests", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 51
+this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 52
+ testRunner.Given("I want to call the API CalculateController \'free\' resource", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 53
+ testRunner.And("I am API rate limited to \'2 per 10 s\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+                TechTalk.SpecFlow.Table table5 = new TechTalk.SpecFlow.Table(new string[] {
+                            "Field",
+                            "Value"});
+                table5.AddRow(new string[] {
+                            "PurchasePrice",
+                            "100000.00"});
+                table5.AddRow(new string[] {
+                            "APR",
+                            "2.75"});
+                table5.AddRow(new string[] {
+                            "LoanTermYears",
+                            "30"});
+                table5.AddRow(new string[] {
+                            "DownPaymentPercent",
+                            "20"});
+                table5.AddRow(new string[] {
+                            "PropertyTaxRate",
+                            "1.15"});
+                table5.AddRow(new string[] {
+                            "HomeownerInsuranceRate",
+                            "0.22"});
+                table5.AddRow(new string[] {
+                            "HOAMonthly",
+                            "0"});
+#line 54
+ testRunner.And("with this API MortgageCalculationRequest", ((string)(null)), table5, "And ");
+#line hidden
+#line 63
+ testRunner.When("I call the API using POST, the url and the request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 64
+ testRunner.Then("the API HTTP response is successful", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 65
+ testRunner.When("I call the API using POST, the url and the request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 66
+ testRunner.Then("the API HTTP response is successful", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 67
+ testRunner.When("I call the API using POST, the url and the request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 68
+ testRunner.Then("the API HTTP response is too many requests", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 69
+ testRunner.And("the API HTTP response Content is the API rate limited message from ScenarioContex" +
+                        "t", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
