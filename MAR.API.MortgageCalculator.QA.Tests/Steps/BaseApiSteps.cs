@@ -87,11 +87,14 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             {
                 if (apiRequestHeaders.ContainsKey(header.Key))
                 {
-                    var errorMessage = $"Duplicate key found in {nameof(apiRequestHeaders)} for '{header.Key}'";
-                    TestConsole.WriteLine("\t" + errorMessage);
-                    throw new ArgumentException(errorMessage, nameof(headers));
+                    var warningMessage = $"Duplicate key found in {nameof(apiRequestHeaders)} for '{header.Key}'. Overwriting.";
+                    TestConsole.WriteLine("\t" + warningMessage);
+                    apiRequestHeaders[header.Key] = header.Value;
                 }
-                apiRequestHeaders.Add(header.Key, header.Value);
+                else
+                {
+                    apiRequestHeaders.Add(header.Key, header.Value);
+                }
             }
             UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiRequestHeadersKey, apiRequestHeaders);
         }

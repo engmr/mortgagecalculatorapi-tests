@@ -39,6 +39,7 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
         {
             GivenIWantToCallTheAPIAuthorizeControllerResource("token/issue");
             GivenWithTheCorrectAPIAuthorizationHeadersSetupForIssuingAToken();
+            AddApiRateLimitBypassClientIdHeaders();
             CallTheAPIUsingPOSTTheUrlAndTheHeaders();
             AssertTheAPIHttpResponseIsSuccessful();
             var authToken = GetTheAuthorizationTokenFromHttpResponseMessage();
@@ -61,7 +62,7 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
                 { TestingHeaderKeys.ClientId, appSettings.PublicPaidAccessUserId.ToString() },
                 { TestingHeaderKeys.Password, appSettings.PublicPaidAccessUserPassword },
             };
-            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiRequestHeadersKey, headers);
+            AddToOrCreateNewApiRequestHeadersCollectionToScenarioContext(headers);
         }
 
         [Given(@"with the incorrect values for API authorization headers setup for issuing a token")]
@@ -72,7 +73,7 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
                 { TestingHeaderKeys.ClientId, _fakeClientId.ToString() },
                 { TestingHeaderKeys.Password, _fakeClientPassword },
             };
-            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiRequestHeadersKey, headers);
+            AddToOrCreateNewApiRequestHeadersCollectionToScenarioContext(headers);
         }
 
         [Given(@"with the incorrect client id for API authorization headers setup for issuing a token")]
@@ -84,7 +85,7 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
                 { TestingHeaderKeys.ClientId, _fakeClientId.ToString() },
                 { TestingHeaderKeys.Password, appSettings.PublicPaidAccessUserPassword },
             };
-            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiRequestHeadersKey, headers);
+            AddToOrCreateNewApiRequestHeadersCollectionToScenarioContext(headers);
         }
 
         [Given(@"with the incorrect client password for API authorization headers setup for issuing a token")]
@@ -96,7 +97,7 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
                 { TestingHeaderKeys.ClientId, appSettings.PublicPaidAccessUserId.ToString() },
                 { TestingHeaderKeys.Password, _fakeClientPassword },
             };
-            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiRequestHeadersKey, headers);
+            AddToOrCreateNewApiRequestHeadersCollectionToScenarioContext(headers);
         }
 
         [Given(@"with the client id missing for API authorization headers setup for issuing a token")]
@@ -106,7 +107,7 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             {
                 { TestingHeaderKeys.Password, _fakeClientPassword },
             };
-            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiRequestHeadersKey, headers);
+            AddToOrCreateNewApiRequestHeadersCollectionToScenarioContext(headers);
         }
 
         [Given(@"with the client password missing for API authorization headers setup for issuing a token")]
@@ -116,7 +117,7 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             {
                 { TestingHeaderKeys.ClientId, _fakeClientId.ToString() },
             };
-            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiRequestHeadersKey, headers);
+            AddToOrCreateNewApiRequestHeadersCollectionToScenarioContext(headers);
         }
 
         [Given(@"with no API authorization headers setup for issuing a token")]
@@ -124,7 +125,7 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
         public void GivenWithNoAPIAuthorizationHeadersSetupForIssuingAToken()
         {
             var headers = new Dictionary<string, string>();
-            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiRequestHeadersKey, headers);
+            AddToOrCreateNewApiRequestHeadersCollectionToScenarioContext(headers);
         }
 
         [Given(@"with empty valued API authorization headers setup for issuing a token")]
@@ -135,7 +136,7 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
                 { TestingHeaderKeys.ClientId, string.Empty },
                 { TestingHeaderKeys.Password, string.Empty },
             };
-            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiRequestHeadersKey, headers);
+            AddToOrCreateNewApiRequestHeadersCollectionToScenarioContext(headers);
         }
 
         [Given(@"with the correct API authorization headers setup for an endpoint requiring authorization from ScenarioContext")]
@@ -147,7 +148,7 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
                 { TestingHeaderKeys.ClientId, appSettings.PublicPaidAccessUserId.ToString() },
                 { TestingHeaderKeys.AuthorizationToken, GetAuthorizationTokenFromScenarioContext() },
             };
-            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiRequestHeadersKey, headers);
+            AddToOrCreateNewApiRequestHeadersCollectionToScenarioContext(headers);
         }
 
         [Given(@"with the correct API authorization headers setup for an endpoint requiring authorization from FeatureContext")]
@@ -159,7 +160,7 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
                 { TestingHeaderKeys.ClientId, appSettings.PublicPaidAccessUserId.ToString() },
                 { TestingHeaderKeys.AuthorizationToken, GetAuthorizationTokenFromFeatureContext() },
             };
-            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiRequestHeadersKey, headers);
+            AddToOrCreateNewApiRequestHeadersCollectionToScenarioContext(headers);
         }
 
         [Given(@"with the incorrect values for API authorization headers setup for an endpoint requiring authorization")]
@@ -170,7 +171,7 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
                 { TestingHeaderKeys.ClientId, _fakeClientId.ToString() },
                 { TestingHeaderKeys.AuthorizationToken, _fakeToken },
             };
-            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiRequestHeadersKey, headers);
+            AddToOrCreateNewApiRequestHeadersCollectionToScenarioContext(headers);
         }
 
         [Given(@"with the incorrect client id for API authorization headers setup for an endpoint requiring authorization from ScenarioContext")]
@@ -182,7 +183,7 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
                 { TestingHeaderKeys.ClientId, _fakeClientId.ToString() },
                 { TestingHeaderKeys.AuthorizationToken, GetAuthorizationTokenFromScenarioContext() },
             };
-            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiRequestHeadersKey, headers);
+            AddToOrCreateNewApiRequestHeadersCollectionToScenarioContext(headers);
         }
 
         [Given(@"with the incorrect client id for API authorization headers setup for an endpoint requiring authorization from FeatureContext")]
@@ -194,7 +195,7 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
                 { TestingHeaderKeys.ClientId, _fakeClientId.ToString() },
                 { TestingHeaderKeys.AuthorizationToken, GetAuthorizationTokenFromFeatureContext() },
             };
-            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiRequestHeadersKey, headers);
+            AddToOrCreateNewApiRequestHeadersCollectionToScenarioContext(headers);
         }
 
         [Given(@"with the incorrect authorization token for API authorization headers setup for an endpoint requiring authorization")]
@@ -206,7 +207,7 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
                 { TestingHeaderKeys.ClientId, appSettings.PublicPaidAccessUserId.ToString() },
                 { TestingHeaderKeys.AuthorizationToken, _fakeToken },
             };
-            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiRequestHeadersKey, headers);
+            AddToOrCreateNewApiRequestHeadersCollectionToScenarioContext(headers);
         }
 
         [Given(@"with the client id missing for API authorization headers setup for an endpoint requiring authorization")]
@@ -216,7 +217,7 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             {
                 { TestingHeaderKeys.AuthorizationToken, _fakeToken },
             };
-            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiRequestHeadersKey, headers);
+            AddToOrCreateNewApiRequestHeadersCollectionToScenarioContext(headers);
         }
 
         [Given(@"with the authorization token missing for API authorization headers setup for an endpoint requiring authorization")]
@@ -226,7 +227,7 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             {
                 { TestingHeaderKeys.ClientId, _fakeClientId.ToString() },
             };
-            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiRequestHeadersKey, headers);
+            AddToOrCreateNewApiRequestHeadersCollectionToScenarioContext(headers);
         }
 
         [Given(@"with empty valued API authorization headers setup for an endpoint requiring authorization")]
@@ -237,7 +238,7 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
                 { TestingHeaderKeys.ClientId, string.Empty },
                 { TestingHeaderKeys.AuthorizationToken, string.Empty },
             };
-            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiRequestHeadersKey, headers);
+            AddToOrCreateNewApiRequestHeadersCollectionToScenarioContext(headers);
         }
     }
 }
