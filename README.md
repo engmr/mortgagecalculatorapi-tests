@@ -48,7 +48,8 @@ To run tests, these are the minimum entries needed in the secrets.json file (as 
   //"AppSettings:BaseUrl": "http://localhost:44363/",
   "AppSettings:BaseUrl": "yourUrlHere",
   "AppSettings:PublicPaidAccessUserId": "yourIdHere",
-  "AppSettings:PublicPaidAccessUserPassword": "yourPasswordHere"
+  "AppSettings:PublicPaidAccessUserPassword": "yourPasswordHere",
+  "AppSettings:ApiRateLimitingXClientId": "yourClientIdEgTester1"
 }
 ```
 

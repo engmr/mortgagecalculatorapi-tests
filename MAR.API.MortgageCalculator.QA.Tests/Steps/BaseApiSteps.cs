@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -62,29 +63,123 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiFullUrlKey, apiUri.AbsoluteUri);
         }
 
+        protected void AddApiRateLimitBypassClientIdHeaders()
+        {
+            var appSettings = GetAppSettings();
+            var headers = new Dictionary<string, string>()
+            {
+                { TestingHeaderKeys.RateLimitXClientId, appSettings.ApiRateLimitingXClientId }
+            };
+            AddToOrCreateNewApiRequestHeadersCollectionToScenarioContext(headers);
+        }
+
+        protected void AddToOrCreateNewApiRequestHeadersCollectionToScenarioContext(Dictionary<string, string> headers)
+        {
+            headers.Should().NotBeNull();
+            var apiRequestHeaders = GetScenarioContextItem<Dictionary<string, string>>(TestingSpecflowContextKeys.ApiRequestHeadersKey);
+            if (apiRequestHeaders == null)
+            {
+                apiRequestHeaders = new Dictionary<string, string>(headers);
+                UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiRequestHeadersKey, apiRequestHeaders);
+                return;
+            }
+            foreach (var header in headers)
+            {
+                if (apiRequestHeaders.ContainsKey(header.Key))
+                {
+                    var warningMessage = $"Duplicate key found in {nameof(apiRequestHeaders)} for '{header.Key}'. Overwriting.";
+                    TestConsole.WriteLine("\t" + warningMessage);
+                    apiRequestHeaders[header.Key] = header.Value;
+                }
+                else
+                {
+                    apiRequestHeaders.Add(header.Key, header.Value);
+                }
+            }
+            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiRequestHeadersKey, apiRequestHeaders);
+        }
+
+        #region HttpClient Methods
+
+        private Task<HttpResponseMessage> CallTheAPIUsingPOSTTheUrlAndTheHeaders(string apiUrl, Dictionary<string, string> apiRequestHeaders)
+        {
+            return new Task<HttpResponseMessage>(() =>
+            {
+                using (var httpClient = new HttpClient())
+                {
+                    foreach (var headerKVP in apiRequestHeaders)
+                    {
+                        httpClient.DefaultRequestHeaders.Add(headerKVP.Key, headerKVP.Value);
+                    }
+
+                    var postTask = Task.Run(() => httpClient.PostAsync(apiUrl, null));
+                    var timedOut = !postTask.Wait(ApiCallTimeout);
+                    if (!timedOut)
+                    {
+                        var response = postTask.Result;
+                        return response;
+                    }
+                    throw new TimeoutException($"POST Request (with headers) to '{apiUrl}' timed out ({ApiCallTimeout} ms).");
+                }
+            });
+        }
+
         protected void CallTheAPIUsingPOSTTheUrlAndTheHeaders()
         {
             var apiUrl = GetScenarioContextItem<string>(TestingSpecflowContextKeys.ApiFullUrlKey);
             apiUrl.Should().NotBeNullOrWhiteSpace();
             var apiRequestHeaders = GetScenarioContextItem<Dictionary<string, string>>(TestingSpecflowContextKeys.ApiRequestHeadersKey);
             apiRequestHeaders.Should().NotBeNull().And.NotBeEmpty();
-            using (var httpClient = new HttpClient())
-            {
-                foreach (var headerKVP in apiRequestHeaders)
-                {
-                    httpClient.DefaultRequestHeaders.Add(headerKVP.Key, headerKVP.Value);
-                }
+            var apiRequestTask = CallTheAPIUsingPOSTTheUrlAndTheHeaders(apiUrl, apiRequestHeaders);
+            apiRequestTask.Start();
+            apiRequestTask.Wait();
+            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, apiRequestTask.Result);
+        }
 
-                var postTask = Task.Run(() => httpClient.PostAsync(apiUrl, null));
-                var timedOut = !postTask.Wait(ApiCallTimeout);
-                if (!timedOut)
-                {
-                    var response = postTask.Result;
-                    UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, response);
-                    return;
-                }
-                throw new TimeoutException($"POST Request (with headers) to '{apiUrl}' timed out ({ApiCallTimeout} ms).");
+        protected void CallTheAPIUsingPOSTTheUrlAndTheHeadersToTriggerAPIRateLimiting()
+        {
+            var apiUrl = GetScenarioContextItem<string>(TestingSpecflowContextKeys.ApiFullUrlKey);
+            apiUrl.Should().NotBeNullOrWhiteSpace();
+            var apiRequestHeaders = GetScenarioContextItem<Dictionary<string, string>>(TestingSpecflowContextKeys.ApiRequestHeadersKey);
+            apiRequestHeaders.Should().NotBeNull().And.NotBeEmpty();
+            var apiRateLimitingTimeInterval = GetScenarioContextItem<ApiRateLimitingTimeInterval>(TestingSpecflowContextKeys.ApiRateLimitingTimeIntervalKey);
+            apiRateLimitingTimeInterval.Should().NotBeNull();
+
+            var numberOfCallsToTriggerApiRateLimiting = apiRateLimitingTimeInterval.RequestsAllowed + 1;
+            var apiCallTasks = new List<Task<HttpResponseMessage>>();
+            for (int i = 0; i < numberOfCallsToTriggerApiRateLimiting; i++)
+            {
+                apiCallTasks.Add(CallTheAPIUsingPOSTTheUrlAndTheHeaders(apiUrl, apiRequestHeaders));
             }
+            apiCallTasks.ForEach(task => task.Start());
+            Task.WaitAll(apiCallTasks.ToArray());
+            var apiRateLimitedHttpResponse = apiCallTasks.FirstOrDefault(task => task.Result.StatusCode == HttpStatusCode.TooManyRequests)?.Result;
+            if (apiRateLimitedHttpResponse == null)
+            {
+                TestConsole.WriteLine("\tNo rate limited response found");
+                //Return last completed response
+                apiRateLimitedHttpResponse = apiCallTasks.OrderByDescending(task => task.Result.Headers.Date.GetValueOrDefault()).First().Result;
+            }
+            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, apiRateLimitedHttpResponse);
+        }
+
+        private Task<HttpResponseMessage> CallTheAPIUsingPOSTTheUrlAndTheRequest(string apiUrl, object apiRequest)
+        {
+            return new Task<HttpResponseMessage>(() =>
+            {
+                using (var httpClient = new HttpClient())
+                {
+                    var httpContent = new StringContent(JsonConvert.SerializeObject(apiRequest), Encoding.UTF8, "application/json");
+                    var postTask = Task.Run(() => httpClient.PostAsync(apiUrl, httpContent));
+                    var timedOut = !postTask.Wait(ApiCallTimeout);
+                    if (!timedOut)
+                    {
+                        var response = postTask.Result;
+                        return response;
+                    }
+                    throw new TimeoutException($"POST Request (with body) to '{apiUrl}' timed out ({ApiCallTimeout} ms).");
+                }
+            });
         }
 
         protected void CallTheAPIUsingPOSTTheUrlAndTheRequest()
@@ -93,19 +188,61 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             apiUrl.Should().NotBeNullOrWhiteSpace();
             var apiRequest = GetScenarioContextItem<object>(TestingSpecflowContextKeys.ApiRequestKey);
             apiRequest.Should().NotBeNull();
-            using (var httpClient = new HttpClient())
+            var apiRequestTask = CallTheAPIUsingPOSTTheUrlAndTheRequest(apiUrl, apiRequest);
+            apiRequestTask.Start();
+            apiRequestTask.Wait();
+            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, apiRequestTask.Result);
+        }
+
+        protected void CallTheAPIUsingPOSTTheUrlAndTheRequestToTriggerAPIRateLimiting()
+        {
+            var apiUrl = GetScenarioContextItem<string>(TestingSpecflowContextKeys.ApiFullUrlKey);
+            apiUrl.Should().NotBeNullOrWhiteSpace();
+            var apiRequest = GetScenarioContextItem<object>(TestingSpecflowContextKeys.ApiRequestKey);
+            apiRequest.Should().NotBeNull();
+            var apiRateLimitingTimeInterval = GetScenarioContextItem<ApiRateLimitingTimeInterval>(TestingSpecflowContextKeys.ApiRateLimitingTimeIntervalKey);
+            apiRateLimitingTimeInterval.Should().NotBeNull();
+
+            var numberOfCallsToTriggerApiRateLimiting = apiRateLimitingTimeInterval.RequestsAllowed + 1;
+            var apiCallTasks = new List<Task<HttpResponseMessage>>();
+            for (int i = 0; i < numberOfCallsToTriggerApiRateLimiting; i++)
             {
-                var httpContent = new StringContent(JsonConvert.SerializeObject(apiRequest), Encoding.UTF8, "application/json");
-                var postTask = Task.Run(() => httpClient.PostAsync(apiUrl, httpContent));
-                var timedOut = !postTask.Wait(ApiCallTimeout);
-                if (!timedOut)
-                {
-                    var response = postTask.Result;
-                    UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, response);
-                    return;
-                }
-                throw new TimeoutException($"POST Request (with body) to '{apiUrl}' timed out ({ApiCallTimeout} ms).");
+                apiCallTasks.Add(CallTheAPIUsingPOSTTheUrlAndTheRequest(apiUrl, apiRequest));
             }
+            apiCallTasks.ForEach(task => task.Start());
+            Task.WaitAll(apiCallTasks.ToArray());
+            var apiRateLimitedHttpResponse = apiCallTasks.FirstOrDefault(task => task.Result.StatusCode == HttpStatusCode.TooManyRequests)?.Result;
+            if (apiRateLimitedHttpResponse == null)
+            {
+                TestConsole.WriteLine("\tNo rate limited response found");
+                //Return last completed response
+                apiRateLimitedHttpResponse = apiCallTasks.OrderByDescending(task => task.Result.Headers.Date.GetValueOrDefault()).First().Result;
+            }
+            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, apiRateLimitedHttpResponse);
+        }
+
+        private Task<HttpResponseMessage> CallTheAPIUsingPOSTTheUrlTheHeadersAndTheRequest(string apiUrl, object apiRequest, Dictionary<string, string> apiRequestHeaders)
+        {
+            return new Task<HttpResponseMessage>(() =>
+            {
+                using (var httpClient = new HttpClient())
+                {
+                    foreach (var headerKVP in apiRequestHeaders)
+                    {
+                        httpClient.DefaultRequestHeaders.Add(headerKVP.Key, headerKVP.Value);
+                    }
+
+                    var httpContent = new StringContent(JsonConvert.SerializeObject(apiRequest), Encoding.UTF8, "application/json");
+                    var postTask = Task.Run(() => httpClient.PostAsync(apiUrl, httpContent));
+                    var timedOut = !postTask.Wait(ApiCallTimeout);
+                    if (!timedOut)
+                    {
+                        var response = postTask.Result;
+                        return response;
+                    }
+                    throw new TimeoutException($"POST Request (with headers) to '{apiUrl}' timed out ({ApiCallTimeout} ms).");
+                }
+            });
         }
 
         protected void CallTheAPIUsingPOSTTheUrlTheHeadersAndTheRequest()
@@ -116,86 +253,212 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             apiRequestHeaders.Should().NotBeNull().And.NotBeEmpty();
             var apiRequest = GetScenarioContextItem<object>(TestingSpecflowContextKeys.ApiRequestKey);
             apiRequest.Should().NotBeNull();
-            using (var httpClient = new HttpClient())
-            {
-                foreach (var headerKVP in apiRequestHeaders)
-                {
-                    httpClient.DefaultRequestHeaders.Add(headerKVP.Key, headerKVP.Value);
-                }
-
-                var httpContent = new StringContent(JsonConvert.SerializeObject(apiRequest), Encoding.UTF8, "application/json");
-                var postTask = Task.Run(() => httpClient.PostAsync(apiUrl, httpContent));
-                var timedOut = !postTask.Wait(ApiCallTimeout);
-                if (!timedOut)
-                {
-                    var response = postTask.Result;
-                    UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, response);
-                    return;
-                }
-                throw new TimeoutException($"POST Request (with headers) to '{apiUrl}' timed out ({ApiCallTimeout} ms).");
-            }
+            var apiRequestTask = CallTheAPIUsingPOSTTheUrlTheHeadersAndTheRequest(apiUrl, apiRequest, apiRequestHeaders);
+            apiRequestTask.Start();
+            apiRequestTask.Wait();
+            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, apiRequestTask.Result);
         }
+
+        protected void CallTheAPIUsingPOSTTheUrlTheHeadersAndTheRequestToTriggerAPIRateLimiting()
+        {
+            var apiUrl = GetScenarioContextItem<string>(TestingSpecflowContextKeys.ApiFullUrlKey);
+            apiUrl.Should().NotBeNullOrWhiteSpace();
+            var apiRequestHeaders = GetScenarioContextItem<Dictionary<string, string>>(TestingSpecflowContextKeys.ApiRequestHeadersKey);
+            apiRequestHeaders.Should().NotBeNull().And.NotBeEmpty();
+            var apiRequest = GetScenarioContextItem<object>(TestingSpecflowContextKeys.ApiRequestKey);
+            apiRequest.Should().NotBeNull();
+            var apiRateLimitingTimeInterval = GetScenarioContextItem<ApiRateLimitingTimeInterval>(TestingSpecflowContextKeys.ApiRateLimitingTimeIntervalKey);
+            apiRateLimitingTimeInterval.Should().NotBeNull();
+
+            var numberOfCallsToTriggerApiRateLimiting = apiRateLimitingTimeInterval.RequestsAllowed + 1;
+            var apiCallTasks = new List<Task<HttpResponseMessage>>();
+            for (int i = 0; i < numberOfCallsToTriggerApiRateLimiting; i++)
+            {
+                apiCallTasks.Add(CallTheAPIUsingPOSTTheUrlTheHeadersAndTheRequest(apiUrl, apiRequest, apiRequestHeaders));
+            }
+            apiCallTasks.ForEach(task => task.Start());
+            Task.WaitAll(apiCallTasks.ToArray());
+            var apiRateLimitedHttpResponse = apiCallTasks.FirstOrDefault(task => task.Result.StatusCode == HttpStatusCode.TooManyRequests)?.Result;
+            if (apiRateLimitedHttpResponse == null)
+            {
+                TestConsole.WriteLine("\tNo rate limited response found");
+                //Return last completed response
+                apiRateLimitedHttpResponse = apiCallTasks.OrderByDescending(task => task.Result.Headers.Date.GetValueOrDefault()).First().Result;
+            }
+            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, apiRateLimitedHttpResponse);
+        }
+
+        private Task<HttpResponseMessage> CallTheAPIUsingGETTheUrlAndTheHeaders(string apiUrl, Dictionary<string, string> apiRequestHeaders)
+        {
+            return new Task<HttpResponseMessage>(() =>
+            {
+                using (var httpClient = new HttpClient())
+                {
+                    foreach (var headerKVP in apiRequestHeaders)
+                    {
+                        httpClient.DefaultRequestHeaders.Add(headerKVP.Key, headerKVP.Value);
+                    }
+
+                    var getTask = Task.Run(() => httpClient.GetAsync(apiUrl));
+                    var timedOut = !getTask.Wait(ApiCallTimeout);
+                    if (!timedOut)
+                    {
+                        var response = getTask.Result;
+                        return response;
+                    }
+                    throw new TimeoutException($"GET Request to '{apiUrl}' timed out ({ApiCallTimeout} ms).");
+                }
+            });
+        }
+
         protected void CallTheAPIUsingGETTheUrlAndTheHeaders()
         {
             var apiUrl = GetScenarioContextItem<string>(TestingSpecflowContextKeys.ApiFullUrlKey);
             apiUrl.Should().NotBeNullOrWhiteSpace();
             var apiRequestHeaders = GetScenarioContextItem<Dictionary<string, string>>(TestingSpecflowContextKeys.ApiRequestHeadersKey);
             apiRequestHeaders.Should().NotBeNull().And.NotBeEmpty();
-            using (var httpClient = new HttpClient())
-            {
-                foreach (var headerKVP in apiRequestHeaders)
-                {
-                    httpClient.DefaultRequestHeaders.Add(headerKVP.Key, headerKVP.Value);
-                }
+            var apiRequestTask = CallTheAPIUsingGETTheUrlAndTheHeaders(apiUrl, apiRequestHeaders);
+            apiRequestTask.Start();
+            apiRequestTask.Wait();
+            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, apiRequestTask.Result);
+        }
 
-                var getTask = Task.Run(() => httpClient.GetAsync(apiUrl));
-                var timedOut = !getTask.Wait(ApiCallTimeout);
-                if (!timedOut)
-                {
-                    var response = getTask.Result;
-                    UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, response);
-                    return;
-                }
-                throw new TimeoutException($"GET Request to '{apiUrl}' timed out ({ApiCallTimeout} ms).");
+        protected void CallTheAPIUsingGETTheUrlAndTheHeadersToTriggerAPIRateLimiting()
+        {
+            var apiUrl = GetScenarioContextItem<string>(TestingSpecflowContextKeys.ApiFullUrlKey);
+            apiUrl.Should().NotBeNullOrWhiteSpace();
+            var apiRequestHeaders = GetScenarioContextItem<Dictionary<string, string>>(TestingSpecflowContextKeys.ApiRequestHeadersKey);
+            apiRequestHeaders.Should().NotBeNull().And.NotBeEmpty();
+            var apiRateLimitingTimeInterval = GetScenarioContextItem<ApiRateLimitingTimeInterval>(TestingSpecflowContextKeys.ApiRateLimitingTimeIntervalKey);
+            apiRateLimitingTimeInterval.Should().NotBeNull();
+
+            var numberOfCallsToTriggerApiRateLimiting = apiRateLimitingTimeInterval.RequestsAllowed + 1;
+            var apiCallTasks = new List<Task<HttpResponseMessage>>();
+            for (int i = 0; i < numberOfCallsToTriggerApiRateLimiting; i++)
+            {
+                apiCallTasks.Add(CallTheAPIUsingGETTheUrlAndTheHeaders(apiUrl, apiRequestHeaders));
             }
+            apiCallTasks.ForEach(task => task.Start());
+            Task.WaitAll(apiCallTasks.ToArray());
+            var apiRateLimitedHttpResponse = apiCallTasks.FirstOrDefault(task => task.Result.StatusCode == HttpStatusCode.TooManyRequests)?.Result;
+            if (apiRateLimitedHttpResponse == null)
+            {
+                TestConsole.WriteLine("\tNo rate limited response found");
+                //Return last completed response
+                apiRateLimitedHttpResponse = apiCallTasks.OrderByDescending(task => task.Result.Headers.Date.GetValueOrDefault()).First().Result;
+            }
+            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, apiRateLimitedHttpResponse);
+        }
+
+        private Task<HttpResponseMessage> CallTheAPIUsingGETAndTheUrl(string apiUrl)
+        {
+            return new Task<HttpResponseMessage>(() =>
+            {
+                using (var httpClient = new HttpClient())
+                {
+                    var getTask = Task.Run(() => httpClient.GetAsync(apiUrl));
+                    var timedOut = !getTask.Wait(ApiCallTimeout);
+                    if (!timedOut)
+                    {
+                        var response = getTask.Result;
+                        return response;
+                    }
+                    throw new TimeoutException($"GET Request to '{apiUrl}' timed out ({ApiCallTimeout} ms).");
+                }
+            });
         }
 
         protected void CallTheAPIUsingGETAndTheUrl()
         {
             var apiUrl = GetScenarioContextItem<string>(TestingSpecflowContextKeys.ApiFullUrlKey);
             apiUrl.Should().NotBeNullOrWhiteSpace();
-            using (var httpClient = new HttpClient())
+            var apiRequestTask = CallTheAPIUsingGETAndTheUrl(apiUrl);
+            apiRequestTask.Start();
+            apiRequestTask.Wait();
+            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, apiRequestTask.Result);
+        }
+
+        protected void CallTheAPIUsingGETAndTheUrlToTriggerAPIRateLimiting()
+        {
+            var apiUrl = GetScenarioContextItem<string>(TestingSpecflowContextKeys.ApiFullUrlKey);
+            apiUrl.Should().NotBeNullOrWhiteSpace();
+            var apiRateLimitingTimeInterval = GetScenarioContextItem<ApiRateLimitingTimeInterval>(TestingSpecflowContextKeys.ApiRateLimitingTimeIntervalKey);
+            apiRateLimitingTimeInterval.Should().NotBeNull();
+
+            var numberOfCallsToTriggerApiRateLimiting = apiRateLimitingTimeInterval.RequestsAllowed + 1;
+            var apiCallTasks = new List<Task<HttpResponseMessage>>();
+            for (int i = 0; i < numberOfCallsToTriggerApiRateLimiting; i++)
             {
-                var getTask = Task.Run(() => httpClient.GetAsync(apiUrl));
-                var timedOut = !getTask.Wait(ApiCallTimeout);
-                if (!timedOut)
-                {
-                    var response = getTask.Result;
-                    UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, response);
-                    return;
-                }
-                throw new TimeoutException($"GET Request to '{apiUrl}' timed out ({ApiCallTimeout} ms).");
+                apiCallTasks.Add(CallTheAPIUsingGETAndTheUrl(apiUrl));
             }
+            apiCallTasks.ForEach(task => task.Start());
+            Task.WaitAll(apiCallTasks.ToArray());
+            var apiRateLimitedHttpResponse = apiCallTasks.FirstOrDefault(task => task.Result.StatusCode == HttpStatusCode.TooManyRequests)?.Result;
+            if (apiRateLimitedHttpResponse == null)
+            {
+                TestConsole.WriteLine("\tNo rate limited response found");
+                //Return last completed response
+                apiRateLimitedHttpResponse = apiCallTasks.OrderByDescending(task => task.Result.Headers.Date.GetValueOrDefault()).First().Result;
+            }
+            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, apiRateLimitedHttpResponse);
+        }
+
+        private Task<HttpResponseMessage> CallTheAPIUsingPOSTAndTheUrl(string apiUrl)
+        {
+            return new Task<HttpResponseMessage>(() =>
+            {
+                using (var httpClient = new HttpClient())
+                {
+                    var postTask = Task.Run(() => httpClient.PostAsync(apiUrl, null));
+                    var timedOut = !postTask.Wait(ApiCallTimeout);
+                    if (!timedOut)
+                    {
+                        var response = postTask.Result;
+                        return response;
+                    }
+                    throw new TimeoutException($"POST Request (no headers/body) to '{apiUrl}' timed out ({ApiCallTimeout} ms).");
+                }
+            });
         }
 
         protected void CallTheAPIUsingPOSTAndTheUrl()
         {
             var apiUrl = GetScenarioContextItem<string>(TestingSpecflowContextKeys.ApiFullUrlKey);
             apiUrl.Should().NotBeNullOrWhiteSpace();
-            using (var httpClient = new HttpClient())
-            {
-                var postTask = Task.Run(() => httpClient.PostAsync(apiUrl, null));
-                var timedOut = !postTask.Wait(ApiCallTimeout);
-                if (!timedOut)
-                {
-                    var response = postTask.Result;
-                    UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, response);
-                    return;
-                }
-                throw new TimeoutException($"POST Request (no headers/body) to '{apiUrl}' timed out ({ApiCallTimeout} ms).");
-            }
+            var apiRequestTask = CallTheAPIUsingPOSTAndTheUrl(apiUrl);
+            apiRequestTask.Start();
+            apiRequestTask.Wait();
+            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, apiRequestTask.Result);
         }
 
+        protected void CallTheAPIUsingPOSTAndTheUrlToTriggerAPIRateLimiting()
+        {
+            var apiUrl = GetScenarioContextItem<string>(TestingSpecflowContextKeys.ApiFullUrlKey);
+            apiUrl.Should().NotBeNullOrWhiteSpace();
+            var apiRateLimitingTimeInterval = GetScenarioContextItem<ApiRateLimitingTimeInterval>(TestingSpecflowContextKeys.ApiRateLimitingTimeIntervalKey);
+            apiRateLimitingTimeInterval.Should().NotBeNull();
+
+            var numberOfCallsToTriggerApiRateLimiting = apiRateLimitingTimeInterval.RequestsAllowed + 1;
+            var apiCallTasks = new List<Task<HttpResponseMessage>>();
+            for (int i = 0; i < numberOfCallsToTriggerApiRateLimiting; i++)
+            {
+                apiCallTasks.Add(CallTheAPIUsingPOSTAndTheUrl(apiUrl));
+            }
+            apiCallTasks.ForEach(task => task.Start());
+            Task.WaitAll(apiCallTasks.ToArray());
+            var apiRateLimitedHttpResponse = apiCallTasks.FirstOrDefault(task => task.Result.StatusCode == HttpStatusCode.TooManyRequests)?.Result;
+            if (apiRateLimitedHttpResponse == null)
+            {
+                TestConsole.WriteLine("\tNo rate limited response found");
+                //Return last completed response
+                apiRateLimitedHttpResponse = apiCallTasks.OrderByDescending(task => task.Result.Headers.Date.GetValueOrDefault()).First().Result;
+            }
+            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, apiRateLimitedHttpResponse);
+        }
+
+        #endregion
+
+        #region Assertion Methods
         protected void AssertTheAPIHttpResponseIsSuccessful()
         {
             var apiHttpResponseMessage = GetScenarioContextItem<HttpResponseMessage>(TestingSpecflowContextKeys.ApiResponseKey);
@@ -223,6 +486,36 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             apiHttpResponseMessage.IsSuccessStatusCode.Should().BeFalse();
             apiHttpResponseMessage.StatusCode.Should().Be(HttpStatusCode.BadRequest);
             apiHttpResponseMessage.Content.Should().NotBeNull();
+        }
+
+        protected void AssertTheAPIHttpResponseIsTooManyRequests()
+        {
+            var apiHttpResponseMessage = GetScenarioContextItem<HttpResponseMessage>(TestingSpecflowContextKeys.ApiResponseKey);
+            apiHttpResponseMessage.Should().NotBeNull();
+            TestConsole.WriteLine("\t" + $"API status code: {(int)apiHttpResponseMessage.StatusCode} ({apiHttpResponseMessage.StatusCode})");
+            apiHttpResponseMessage.IsSuccessStatusCode.Should().BeFalse();
+            apiHttpResponseMessage.StatusCode.Should().Be(HttpStatusCode.TooManyRequests);
+            apiHttpResponseMessage.Content.Should().NotBeNull();
+        }
+
+        protected void AssertTheAPIHttpHeadersShowRateLimitingWasApplied()
+        {
+            var apiHttpResponseMessage = GetScenarioContextItem<HttpResponseMessage>(TestingSpecflowContextKeys.ApiResponseKey);
+            apiHttpResponseMessage.Should().NotBeNull();
+            apiHttpResponseMessage.Headers.Should().NotBeNullOrEmpty();
+            apiHttpResponseMessage.Headers.Contains(TestingHeaderKeys.RateLimitLimit).Should().BeTrue();
+            apiHttpResponseMessage.Headers.Contains(TestingHeaderKeys.RateLimitRemaining).Should().BeTrue();
+            apiHttpResponseMessage.Headers.Contains(TestingHeaderKeys.RateLimitReset).Should().BeTrue();
+        }
+
+        protected void AssertTheAPIHttpHeadersShowRateLimitingWasNotApplied()
+        {
+            var apiHttpResponseMessage = GetScenarioContextItem<HttpResponseMessage>(TestingSpecflowContextKeys.ApiResponseKey);
+            apiHttpResponseMessage.Should().NotBeNull();
+            apiHttpResponseMessage.Headers.Should().NotBeNullOrEmpty();
+            apiHttpResponseMessage.Headers.Contains(TestingHeaderKeys.RateLimitLimit).Should().BeFalse();
+            apiHttpResponseMessage.Headers.Contains(TestingHeaderKeys.RateLimitRemaining).Should().BeFalse();
+            apiHttpResponseMessage.Headers.Contains(TestingHeaderKeys.RateLimitReset).Should().BeFalse();
         }
 
         protected void AssertTheAPIHttpDomainResponseDataIsCorrect()
@@ -256,10 +549,31 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             responseDataBool.Should().HaveValue().And.Be(expected);
         }
 
+        protected void AssertTheAPIHTTPResponseContentIsExpected(string expected)
+        {
+            var httpResponseResponse = GetStringContentFromHttpResponseMessage();
+            httpResponseResponse.Should().Be(expected);
+        }
+
+        protected void AssertTheAPIHTTPResponseContentIsTheAPIRateLimitedMessage()
+        {
+            var timeInterval = GetScenarioContextItem<ApiRateLimitingTimeInterval>(TestingSpecflowContextKeys.ApiRateLimitingTimeIntervalKey);
+            timeInterval.Should().NotBeNull();
+            var expected = string.Format(TestingConstants.ApiRateLimitingResponseMessageFormat, timeInterval.GetApiRateLimitingResponseBodySuffix());
+            AssertTheAPIHTTPResponseContentIsExpected(expected);
+        } 
+        #endregion
+
         protected string GetTheAuthorizationTokenFromHttpResponseMessage()
         {
             var httpResponseResponse = GetApiResponseFromHttpResponseMessage();
             return httpResponseResponse.Data as string;
+        }
+
+        protected void SetExpectedRateLimitingIntervalIntoScenarioContext(ApiRateLimitingTimeInterval timeInterval)
+        {
+            timeInterval.Should().NotBeNull();
+            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiRateLimitingTimeIntervalKey, timeInterval);
         }
 
         protected string GetAuthorizationTokenFromScenarioContext()
@@ -294,6 +608,21 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             var httpResponseJson = readTask.Result;
             httpResponseJson.Should().NotBeNullOrWhiteSpace();
             return JsonConvert.DeserializeObject<ApiResponse<object>>(httpResponseJson);
+        }
+
+        /// <summary>
+        /// Returns <see cref="string"/> from an <see cref="HttpResponseMessage"/>
+        /// </summary>
+        /// <returns></returns>
+        protected string GetStringContentFromHttpResponseMessage()
+        {
+            var apiHttpResponseMessage = GetScenarioContextItem<HttpResponseMessage>(TestingSpecflowContextKeys.ApiResponseKey);
+            apiHttpResponseMessage.Should().NotBeNull();
+            var readTask = Task.Run(() => apiHttpResponseMessage.Content.ReadAsStringAsync());
+            readTask.Wait(2000);
+            var httpsResponseString = readTask.Result;
+            httpsResponseString.Should().NotBeNullOrWhiteSpace();
+            return httpsResponseString;
         }
 
         /// <summary>

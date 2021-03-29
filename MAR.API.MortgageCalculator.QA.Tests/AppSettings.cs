@@ -4,6 +4,12 @@ namespace MAR.API.MortgageCalculator.QA.Tests
 {
     public class AppSettings
     {
+        /// <summary>
+        /// White list client id for bypassing rate limiting. 
+        /// Must be in the ClientWhiteList of the API appsettings.json
+        /// </summary>
+        /// <example>TesterCheetah9000</example>
+        public string ApiRateLimitingXClientId { get; set; }
         public string ApiResponseApiVersion { get; set; }
         public string ApiResponseApplicationName { get; set; }
         /// <summary>

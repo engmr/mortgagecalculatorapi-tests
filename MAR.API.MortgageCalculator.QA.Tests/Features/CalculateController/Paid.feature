@@ -26,7 +26,7 @@ Scenario: Calculate (paid) endpoint returns successful response for request with
 	| DownPayment                       | 20000    |
 	| TermInterestPaid                  | 37573.46 |
 
-@CalculateControllerTests
+@CalculateControllerTests @DeploymentSmokeTests
 Scenario: Calculate (paid) endpoint returns successful response for request without HOA
 	Given I issue an authorization token successfully to ScenarioContext
 	And I want to call the API CalculateController '' resource
