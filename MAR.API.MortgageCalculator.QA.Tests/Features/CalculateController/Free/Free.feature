@@ -60,10 +60,6 @@ Scenario: Calculate (free) endpoint returns too many requests
 	| PropertyTaxRate        | 1.15      |
 	| HomeownerInsuranceRate | 0.22      |
 	| HOAMonthly             | 0         |
-	When I call the API using POST, the url and the request
-	Then the API HTTP response is successful
-	When I call the API using POST, the url and the request
-	Then the API HTTP response is successful
-	When I call the API using POST, the url and the request
+	When I call the API using POST, the url and the request to trigger API rate limiting
 	Then the API HTTP response is too many requests
 	And the API HTTP response Content is the API rate limited message from ScenarioContext

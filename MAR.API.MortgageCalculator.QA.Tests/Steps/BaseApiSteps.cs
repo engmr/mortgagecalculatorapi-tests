@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -62,29 +63,39 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiFullUrlKey, apiUri.AbsoluteUri);
         }
 
+        private Task<HttpResponseMessage> CallTheAPIUsingPOSTTheUrlAndTheHeaders(string apiUrl, Dictionary<string, string> apiRequestHeaders)
+        {
+            return new Task<HttpResponseMessage>(() =>
+            {
+                using (var httpClient = new HttpClient())
+                {
+                    foreach (var headerKVP in apiRequestHeaders)
+                    {
+                        httpClient.DefaultRequestHeaders.Add(headerKVP.Key, headerKVP.Value);
+                    }
+
+                    var postTask = Task.Run(() => httpClient.PostAsync(apiUrl, null));
+                    var timedOut = !postTask.Wait(ApiCallTimeout);
+                    if (!timedOut)
+                    {
+                        var response = postTask.Result;
+                        return response;
+                    }
+                    throw new TimeoutException($"POST Request (with headers) to '{apiUrl}' timed out ({ApiCallTimeout} ms).");
+                }
+            });
+        }
+
         protected void CallTheAPIUsingPOSTTheUrlAndTheHeaders()
         {
             var apiUrl = GetScenarioContextItem<string>(TestingSpecflowContextKeys.ApiFullUrlKey);
             apiUrl.Should().NotBeNullOrWhiteSpace();
             var apiRequestHeaders = GetScenarioContextItem<Dictionary<string, string>>(TestingSpecflowContextKeys.ApiRequestHeadersKey);
             apiRequestHeaders.Should().NotBeNull().And.NotBeEmpty();
-            using (var httpClient = new HttpClient())
-            {
-                foreach (var headerKVP in apiRequestHeaders)
-                {
-                    httpClient.DefaultRequestHeaders.Add(headerKVP.Key, headerKVP.Value);
-                }
-
-                var postTask = Task.Run(() => httpClient.PostAsync(apiUrl, null));
-                var timedOut = !postTask.Wait(ApiCallTimeout);
-                if (!timedOut)
-                {
-                    var response = postTask.Result;
-                    UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, response);
-                    return;
-                }
-                throw new TimeoutException($"POST Request (with headers) to '{apiUrl}' timed out ({ApiCallTimeout} ms).");
-            }
+            var apiRequestTask = CallTheAPIUsingPOSTTheUrlAndTheHeaders(apiUrl, apiRequestHeaders);
+            apiRequestTask.Start();
+            apiRequestTask.Wait();
+            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, apiRequestTask.Result);
         }
 
         protected void CallTheAPIUsingPOSTTheUrlAndTheRequest()
@@ -93,19 +104,78 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             apiUrl.Should().NotBeNullOrWhiteSpace();
             var apiRequest = GetScenarioContextItem<object>(TestingSpecflowContextKeys.ApiRequestKey);
             apiRequest.Should().NotBeNull();
-            using (var httpClient = new HttpClient())
+            var apiRequestTask = CallTheAPIUsingPOSTTheUrlAndTheRequest(apiUrl, apiRequest);
+            apiRequestTask.Start();
+            apiRequestTask.Wait();
+            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, apiRequestTask.Result);
+        }
+
+        private Task<HttpResponseMessage> CallTheAPIUsingPOSTTheUrlAndTheRequest(string apiUrl, object apiRequest)
+        {
+            return new Task<HttpResponseMessage>(() =>
             {
-                var httpContent = new StringContent(JsonConvert.SerializeObject(apiRequest), Encoding.UTF8, "application/json");
-                var postTask = Task.Run(() => httpClient.PostAsync(apiUrl, httpContent));
-                var timedOut = !postTask.Wait(ApiCallTimeout);
-                if (!timedOut)
+                using (var httpClient = new HttpClient())
                 {
-                    var response = postTask.Result;
-                    UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, response);
-                    return;
+                    var httpContent = new StringContent(JsonConvert.SerializeObject(apiRequest), Encoding.UTF8, "application/json");
+                    var postTask = Task.Run(() => httpClient.PostAsync(apiUrl, httpContent));
+                    var timedOut = !postTask.Wait(ApiCallTimeout);
+                    if (!timedOut)
+                    {
+                        var response = postTask.Result;
+                        return response;
+                    }
+                    throw new TimeoutException($"POST Request (with body) to '{apiUrl}' timed out ({ApiCallTimeout} ms).");
                 }
-                throw new TimeoutException($"POST Request (with body) to '{apiUrl}' timed out ({ApiCallTimeout} ms).");
+            });
+        }
+
+        protected void CallTheAPIUsingPOSTTheUrlAndTheRequestToTriggerAPIRateLimiting()
+        {
+            var apiUrl = GetScenarioContextItem<string>(TestingSpecflowContextKeys.ApiFullUrlKey);
+            apiUrl.Should().NotBeNullOrWhiteSpace();
+            var apiRequest = GetScenarioContextItem<object>(TestingSpecflowContextKeys.ApiRequestKey);
+            apiRequest.Should().NotBeNull();
+            var apiRateLimitingTimeInterval = GetScenarioContextItem<ApiRateLimitingTimeInterval>(TestingSpecflowContextKeys.ApiRateLimitingTimeIntervalKey);
+            apiRateLimitingTimeInterval.Should().NotBeNull();
+
+            var numberOfCallsToTriggerApiRateLimiting = apiRateLimitingTimeInterval.RequestsAllowed + 1;
+            var apiCallTasks = new List<Task<HttpResponseMessage>>();
+            for (int i = 0; i < numberOfCallsToTriggerApiRateLimiting; i++)
+            {
+                apiCallTasks.Add(CallTheAPIUsingPOSTTheUrlAndTheRequest(apiUrl, apiRequest));
             }
+            apiCallTasks.ForEach(task => task.Start());
+            Task.WaitAll(apiCallTasks.ToArray());
+            var apiRateLimitedHttpResponse = apiCallTasks.FirstOrDefault(task => task.Result.StatusCode == HttpStatusCode.TooManyRequests)?.Result;
+            if (apiRateLimitedHttpResponse == null)
+            {
+                TestConsole.WriteLine("\tNo rate limited response found");
+            }
+            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, apiRateLimitedHttpResponse);
+        }
+
+        private Task<HttpResponseMessage> CallTheAPIUsingPOSTTheUrlTheHeadersAndTheRequest(string apiUrl, object apiRequest, Dictionary<string, string> apiRequestHeaders)
+        {
+            return new Task<HttpResponseMessage>(() =>
+            {
+                using (var httpClient = new HttpClient())
+                {
+                    foreach (var headerKVP in apiRequestHeaders)
+                    {
+                        httpClient.DefaultRequestHeaders.Add(headerKVP.Key, headerKVP.Value);
+                    }
+
+                    var httpContent = new StringContent(JsonConvert.SerializeObject(apiRequest), Encoding.UTF8, "application/json");
+                    var postTask = Task.Run(() => httpClient.PostAsync(apiUrl, httpContent));
+                    var timedOut = !postTask.Wait(ApiCallTimeout);
+                    if (!timedOut)
+                    {
+                        var response = postTask.Result;
+                        return response;
+                    }
+                    throw new TimeoutException($"POST Request (with headers) to '{apiUrl}' timed out ({ApiCallTimeout} ms).");
+                }
+            });
         }
 
         protected void CallTheAPIUsingPOSTTheUrlTheHeadersAndTheRequest()
@@ -116,24 +186,33 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             apiRequestHeaders.Should().NotBeNull().And.NotBeEmpty();
             var apiRequest = GetScenarioContextItem<object>(TestingSpecflowContextKeys.ApiRequestKey);
             apiRequest.Should().NotBeNull();
-            using (var httpClient = new HttpClient())
-            {
-                foreach (var headerKVP in apiRequestHeaders)
-                {
-                    httpClient.DefaultRequestHeaders.Add(headerKVP.Key, headerKVP.Value);
-                }
+            var apiRequestTask = CallTheAPIUsingPOSTTheUrlTheHeadersAndTheRequest(apiUrl, apiRequest, apiRequestHeaders);
+            apiRequestTask.Start();
+            apiRequestTask.Wait();
+            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, apiRequestTask.Result);
+        }
 
-                var httpContent = new StringContent(JsonConvert.SerializeObject(apiRequest), Encoding.UTF8, "application/json");
-                var postTask = Task.Run(() => httpClient.PostAsync(apiUrl, httpContent));
-                var timedOut = !postTask.Wait(ApiCallTimeout);
-                if (!timedOut)
+        private Task<HttpResponseMessage> CallTheAPIUsingGETTheUrlAndTheHeaders(string apiUrl, Dictionary<string, string> apiRequestHeaders)
+        {
+            return new Task<HttpResponseMessage>(() =>
+            {
+                using (var httpClient = new HttpClient())
                 {
-                    var response = postTask.Result;
-                    UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, response);
-                    return;
+                    foreach (var headerKVP in apiRequestHeaders)
+                    {
+                        httpClient.DefaultRequestHeaders.Add(headerKVP.Key, headerKVP.Value);
+                    }
+
+                    var getTask = Task.Run(() => httpClient.GetAsync(apiUrl));
+                    var timedOut = !getTask.Wait(ApiCallTimeout);
+                    if (!timedOut)
+                    {
+                        var response = getTask.Result;
+                        return response;
+                    }
+                    throw new TimeoutException($"GET Request to '{apiUrl}' timed out ({ApiCallTimeout} ms).");
                 }
-                throw new TimeoutException($"POST Request (with headers) to '{apiUrl}' timed out ({ApiCallTimeout} ms).");
-            }
+            });
         }
 
         protected void CallTheAPIUsingGETTheUrlAndTheHeaders()
@@ -142,59 +221,66 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             apiUrl.Should().NotBeNullOrWhiteSpace();
             var apiRequestHeaders = GetScenarioContextItem<Dictionary<string, string>>(TestingSpecflowContextKeys.ApiRequestHeadersKey);
             apiRequestHeaders.Should().NotBeNull().And.NotBeEmpty();
-            using (var httpClient = new HttpClient())
-            {
-                foreach (var headerKVP in apiRequestHeaders)
-                {
-                    httpClient.DefaultRequestHeaders.Add(headerKVP.Key, headerKVP.Value);
-                }
+            var apiRequestTask = CallTheAPIUsingGETTheUrlAndTheHeaders(apiUrl, apiRequestHeaders);
+            apiRequestTask.Start();
+            apiRequestTask.Wait();
+            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, apiRequestTask.Result);
+        }
 
-                var getTask = Task.Run(() => httpClient.GetAsync(apiUrl));
-                var timedOut = !getTask.Wait(ApiCallTimeout);
-                if (!timedOut)
+        private Task<HttpResponseMessage> CallTheAPIUsingGETAndTheUrl(string apiUrl)
+        {
+            return new Task<HttpResponseMessage>(() =>
+            {
+                using (var httpClient = new HttpClient())
                 {
-                    var response = getTask.Result;
-                    UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, response);
-                    return;
+                    var getTask = Task.Run(() => httpClient.GetAsync(apiUrl));
+                    var timedOut = !getTask.Wait(ApiCallTimeout);
+                    if (!timedOut)
+                    {
+                        var response = getTask.Result;
+                        return response;
+                    }
+                    throw new TimeoutException($"GET Request to '{apiUrl}' timed out ({ApiCallTimeout} ms).");
                 }
-                throw new TimeoutException($"GET Request to '{apiUrl}' timed out ({ApiCallTimeout} ms).");
-            }
+            });
         }
 
         protected void CallTheAPIUsingGETAndTheUrl()
         {
             var apiUrl = GetScenarioContextItem<string>(TestingSpecflowContextKeys.ApiFullUrlKey);
             apiUrl.Should().NotBeNullOrWhiteSpace();
-            using (var httpClient = new HttpClient())
+            var apiRequestTask = CallTheAPIUsingGETAndTheUrl(apiUrl);
+            apiRequestTask.Start();
+            apiRequestTask.Wait();
+            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, apiRequestTask.Result);
+        }
+
+        private Task<HttpResponseMessage> CallTheAPIUsingPOSTAndTheUrl(string apiUrl)
+        {
+            return new Task<HttpResponseMessage>(() =>
             {
-                var getTask = Task.Run(() => httpClient.GetAsync(apiUrl));
-                var timedOut = !getTask.Wait(ApiCallTimeout);
-                if (!timedOut)
+                using (var httpClient = new HttpClient())
                 {
-                    var response = getTask.Result;
-                    UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, response);
-                    return;
+                    var postTask = Task.Run(() => httpClient.PostAsync(apiUrl, null));
+                    var timedOut = !postTask.Wait(ApiCallTimeout);
+                    if (!timedOut)
+                    {
+                        var response = postTask.Result;
+                        return response;
+                    }
+                    throw new TimeoutException($"POST Request (no headers/body) to '{apiUrl}' timed out ({ApiCallTimeout} ms).");
                 }
-                throw new TimeoutException($"GET Request to '{apiUrl}' timed out ({ApiCallTimeout} ms).");
-            }
+            });
         }
 
         protected void CallTheAPIUsingPOSTAndTheUrl()
         {
             var apiUrl = GetScenarioContextItem<string>(TestingSpecflowContextKeys.ApiFullUrlKey);
             apiUrl.Should().NotBeNullOrWhiteSpace();
-            using (var httpClient = new HttpClient())
-            {
-                var postTask = Task.Run(() => httpClient.PostAsync(apiUrl, null));
-                var timedOut = !postTask.Wait(ApiCallTimeout);
-                if (!timedOut)
-                {
-                    var response = postTask.Result;
-                    UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, response);
-                    return;
-                }
-                throw new TimeoutException($"POST Request (no headers/body) to '{apiUrl}' timed out ({ApiCallTimeout} ms).");
-            }
+            var apiRequestTask = CallTheAPIUsingPOSTAndTheUrl(apiUrl);
+            apiRequestTask.Start();
+            apiRequestTask.Wait();
+            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, apiRequestTask.Result);
         }
 
         protected void AssertTheAPIHttpResponseIsSuccessful()
@@ -266,7 +352,7 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             var responseDataBool = httpResponseResponse.Data as bool?;
             responseDataBool.Should().HaveValue().And.Be(expected);
         }
-        
+
         protected void AssertTheAPIHTTPResponseContentIsExpected(string expected)
         {
             var httpResponseResponse = GetStringContentFromHttpResponseMessage();

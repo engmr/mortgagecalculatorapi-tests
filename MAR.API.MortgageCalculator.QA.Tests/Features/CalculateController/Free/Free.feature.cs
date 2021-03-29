@@ -336,24 +336,12 @@ this.ScenarioInitialize(scenarioInfo);
  testRunner.And("with this API MortgageCalculationRequest", ((string)(null)), table5, "And ");
 #line hidden
 #line 63
- testRunner.When("I call the API using POST, the url and the request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+ testRunner.When("I call the API using POST, the url and the request to trigger API rate limiting", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 64
- testRunner.Then("the API HTTP response is successful", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line hidden
-#line 65
- testRunner.When("I call the API using POST, the url and the request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line hidden
-#line 66
- testRunner.Then("the API HTTP response is successful", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line hidden
-#line 67
- testRunner.When("I call the API using POST, the url and the request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line hidden
-#line 68
  testRunner.Then("the API HTTP response is too many requests", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 69
+#line 65
  testRunner.And("the API HTTP response Content is the API rate limited message from ScenarioContex" +
                         "t", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden

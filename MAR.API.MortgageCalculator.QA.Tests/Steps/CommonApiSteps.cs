@@ -119,5 +119,12 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
         {
             SetExpectedRateLimitingIntervalIntoScenarioContext(rateLimitedTimeSpan);
         }
+
+        [When(@"I call the API using POST, the url and the request to trigger API rate limiting")]
+        public void WhenICallTheAPIUsingPOSTTheUrlAndTheRequestToTriggerAPIRateLimiting()
+        {
+            CallTheAPIUsingPOSTTheUrlAndTheRequestToTriggerAPIRateLimiting();
+        }
+
     }
 }
