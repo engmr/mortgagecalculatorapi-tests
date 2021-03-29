@@ -8,5 +8,6 @@
         public const string RateLimitLimit = "X-Rate-Limit-Limit";
         public const string RateLimitRemaining = "X-Rate-Limit-Remaining";
         public const string RateLimitReset = "X-Rate-Limit-Reset";
+        public const string RateLimitXClientId = "X-ClientId";
     }
 }

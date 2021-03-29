@@ -26,6 +26,7 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
         {
             GivenIWantToCallTheAPIAuthorizeControllerResource("token/issue");
             GivenWithTheCorrectAPIAuthorizationHeadersSetupForIssuingAToken();
+            AddApiRateLimitBypassClientIdHeaders();
             CallTheAPIUsingPOSTTheUrlAndTheHeaders();
             AssertTheAPIHttpResponseIsSuccessful();
             var authToken = GetTheAuthorizationTokenFromHttpResponseMessage();

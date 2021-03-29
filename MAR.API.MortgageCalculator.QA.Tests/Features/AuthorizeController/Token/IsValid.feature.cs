@@ -123,15 +123,21 @@ this.ScenarioInitialize(scenarioInfo);
                         "ization from ScenarioContext", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 9
- testRunner.When("I call the API using GET, the url and the headers", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+ testRunner.And("with the ClientId bypass API rate limiting header added to the headers", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 10
- testRunner.Then("the API HTTP response is successful", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+ testRunner.When("I call the API using GET, the url and the headers", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 11
- testRunner.And("the API HTTP domain response data is correct", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+ testRunner.Then("the API HTTP response is successful", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 12
+ testRunner.And("the API HTTP headers indicate that API rate limiting was not applied", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 13
+ testRunner.And("the API HTTP domain response data is correct", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 14
  testRunner.And("the API HTTP response Data is bool \'true\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
@@ -150,7 +156,7 @@ this.ScenarioInitialize(scenarioInfo);
                     "DeploymentSmokeTests"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Token IsValid is not successful for invalid credentials", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
-#line 15
+#line 17
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -170,23 +176,26 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 this.ScenarioStart();
-#line 16
+#line 18
  testRunner.Given("I want to call the API AuthorizeController \'token/isvalid\' resource", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 17
+#line 19
  testRunner.And("with the incorrect values for API authorization headers setup for an endpoint req" +
                         "uiring authorization", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 18
- testRunner.When("I call the API using GET, the url and the headers", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line hidden
-#line 19
- testRunner.Then("the API HTTP response is successful", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
-#line hidden
 #line 20
- testRunner.And("the API HTTP domain response data is correct", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+ testRunner.And("with the ClientId bypass API rate limiting header added to the headers", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 21
+ testRunner.When("I call the API using GET, the url and the headers", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 22
+ testRunner.Then("the API HTTP response is successful", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 23
+ testRunner.And("the API HTTP domain response data is correct", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 24
  testRunner.And("the API HTTP response Data is bool \'false\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
@@ -203,7 +212,7 @@ this.ScenarioInitialize(scenarioInfo);
                     "AuthorizeControllerTests"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Token IsValid is not successful for invalid client id", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
-#line 24
+#line 27
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -223,26 +232,29 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 this.ScenarioStart();
-#line 25
+#line 28
  testRunner.Given("I issue an authorization token successfully to ScenarioContext", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 26
+#line 29
  testRunner.And("I want to call the API AuthorizeController \'token/isvalid\' resource", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 27
+#line 30
  testRunner.And("with the incorrect client id for API authorization headers setup for an endpoint " +
                         "requiring authorization from ScenarioContext", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 28
+#line 31
+ testRunner.And("with the ClientId bypass API rate limiting header added to the headers", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 32
  testRunner.When("I call the API using GET, the url and the headers", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 29
+#line 33
  testRunner.Then("the API HTTP response is successful", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 30
+#line 34
  testRunner.And("the API HTTP domain response data is correct", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 31
+#line 35
  testRunner.And("the API HTTP response Data is bool \'false\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
@@ -259,7 +271,7 @@ this.ScenarioInitialize(scenarioInfo);
                     "AuthorizeControllerTests"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Token IsValid is not successful for invalid authorization token", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
-#line 34
+#line 38
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -279,23 +291,26 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 this.ScenarioStart();
-#line 35
+#line 39
  testRunner.Given("I want to call the API AuthorizeController \'token/isvalid\' resource", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 36
+#line 40
  testRunner.And("with the incorrect authorization token for API authorization headers setup for an" +
                         " endpoint requiring authorization", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 37
+#line 41
+ testRunner.And("with the ClientId bypass API rate limiting header added to the headers", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 42
  testRunner.When("I call the API using GET, the url and the headers", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 38
+#line 43
  testRunner.Then("the API HTTP response is successful", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 39
+#line 44
  testRunner.And("the API HTTP domain response data is correct", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 40
+#line 45
  testRunner.And("the API HTTP response Data is bool \'false\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
@@ -312,7 +327,7 @@ this.ScenarioInitialize(scenarioInfo);
                     "AuthorizeControllerTests"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Token IsValid is not successful for missing client id", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
-#line 43
+#line 48
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -332,23 +347,26 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 this.ScenarioStart();
-#line 44
+#line 49
  testRunner.Given("I want to call the API AuthorizeController \'token/isvalid\' resource", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 45
+#line 50
  testRunner.And("with the client id missing for API authorization headers setup for an endpoint re" +
                         "quiring authorization", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 46
+#line 51
+ testRunner.And("with the ClientId bypass API rate limiting header added to the headers", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 52
  testRunner.When("I call the API using GET, the url and the headers", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 47
+#line 53
  testRunner.Then("the API HTTP response is bad request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 48
+#line 54
  testRunner.And("the API HTTP domain response data is correct", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 49
+#line 55
  testRunner.And("the API HTTP response Data is null", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
@@ -365,7 +383,7 @@ this.ScenarioInitialize(scenarioInfo);
                     "AuthorizeControllerTests"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Token IsValid is not successful for missing authorization token", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
-#line 52
+#line 58
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -385,23 +403,26 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 this.ScenarioStart();
-#line 53
+#line 59
  testRunner.Given("I want to call the API AuthorizeController \'token/isvalid\' resource", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 54
+#line 60
  testRunner.And("with the authorization token missing for API authorization headers setup for an e" +
                         "ndpoint requiring authorization", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 55
+#line 61
+ testRunner.And("with the ClientId bypass API rate limiting header added to the headers", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 62
  testRunner.When("I call the API using GET, the url and the headers", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 56
+#line 63
  testRunner.Then("the API HTTP response is bad request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 57
+#line 64
  testRunner.And("the API HTTP domain response data is correct", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 58
+#line 65
  testRunner.And("the API HTTP response Data is null", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
@@ -418,7 +439,7 @@ this.ScenarioInitialize(scenarioInfo);
                     "AuthorizeControllerTests"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Token IsValid is not successful for passing empty values into headers", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
-#line 61
+#line 68
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -438,23 +459,26 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 this.ScenarioStart();
-#line 62
+#line 69
  testRunner.Given("I want to call the API AuthorizeController \'token/isvalid\' resource", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 63
+#line 70
  testRunner.And("with empty valued API authorization headers setup for an endpoint requiring autho" +
                         "rization", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 64
+#line 71
+ testRunner.And("with the ClientId bypass API rate limiting header added to the headers", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 72
  testRunner.When("I call the API using GET, the url and the headers", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 65
+#line 73
  testRunner.Then("the API HTTP response is bad request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 66
+#line 74
  testRunner.And("the API HTTP domain response data is correct", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 67
+#line 75
  testRunner.And("the API HTTP response Data is null", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
@@ -471,7 +495,7 @@ this.ScenarioInitialize(scenarioInfo);
                     "AuthorizeControllerTests"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Token IsValid is not successful for not passing any headers", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
-#line 70
+#line 78
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -491,23 +515,93 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 this.ScenarioStart();
-#line 71
+#line 79
  testRunner.Given("I want to call the API AuthorizeController \'token/isvalid\' resource", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 72
+#line 80
  testRunner.And("with no API authorization headers setup for an endpoint requiring authorization", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 73
+#line 81
+ testRunner.And("with the ClientId bypass API rate limiting header added to the headers", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 82
  testRunner.When("I call the API using GET and the url", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 74
+#line 83
  testRunner.Then("the API HTTP response is bad request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 75
+#line 84
  testRunner.And("the API HTTP domain response data is correct", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 76
+#line 85
  testRunner.And("the API HTTP response Data is null", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Token IsValid returns successful response when bypassing API rate limiting using " +
+            "ClientWhiteList")]
+        [Xunit.TraitAttribute("FeatureTitle", "IsValid")]
+        [Xunit.TraitAttribute("Description", "Token IsValid returns successful response when bypassing API rate limiting using " +
+            "ClientWhiteList")]
+        [Xunit.TraitAttribute("Category", "AuthorizeControllerTests")]
+        [Xunit.TraitAttribute("Category", "RateLimitingTests")]
+        public virtual void TokenIsValidReturnsSuccessfulResponseWhenBypassingAPIRateLimitingUsingClientWhiteList()
+        {
+            string[] tagsOfScenario = new string[] {
+                    "AuthorizeControllerTests",
+                    "RateLimitingTests"};
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Token IsValid returns successful response when bypassing API rate limiting using " +
+                    "ClientWhiteList", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 88
+this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 89
+ testRunner.Given("I want to call the API AuthorizeController \'token/isvalid\' resource", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
+#line hidden
+#line 90
+ testRunner.And("with the incorrect authorization token for API authorization headers setup for an" +
+                        " endpoint requiring authorization", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 91
+ testRunner.And("with the ClientId bypass API rate limiting header added to the headers", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 92
+ testRunner.And("I am API rate limited to \'15 per 5 s\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 93
+ testRunner.When("I call the API using GET, the url and the headers to trigger API rate limiting", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 94
+ testRunner.Then("the API HTTP response is successful", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 95
+ testRunner.And("the API HTTP headers indicate that API rate limiting was not applied", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 96
+ testRunner.And("the API HTTP domain response data is correct", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 97
+ testRunner.And("the API HTTP response Data is bool \'false\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
@@ -525,7 +619,7 @@ this.ScenarioInitialize(scenarioInfo);
                     "RateLimitingTests"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Token IsValid returns too many requests", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
-#line 79
+#line 100
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -545,23 +639,23 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 this.ScenarioStart();
-#line 80
+#line 101
  testRunner.Given("I want to call the API AuthorizeController \'token/isvalid\' resource", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 81
+#line 102
  testRunner.And("with the incorrect authorization token for API authorization headers setup for an" +
                         " endpoint requiring authorization", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 82
+#line 103
  testRunner.And("I am API rate limited to \'15 per 5 s\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-#line 83
+#line 104
  testRunner.When("I call the API using GET, the url and the headers to trigger API rate limiting", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 84
+#line 105
  testRunner.Then("the API HTTP response is too many requests", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 85
+#line 106
  testRunner.And("the API HTTP response Content is the API rate limited message from ScenarioContex" +
                         "t", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden

@@ -63,6 +63,41 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiFullUrlKey, apiUri.AbsoluteUri);
         }
 
+        protected void AddApiRateLimitBypassClientIdHeaders()
+        {
+            var appSettings = GetAppSettings();
+            var headers = new Dictionary<string, string>()
+            {
+                { TestingHeaderKeys.RateLimitXClientId, appSettings.ApiRateLimitingXClientId }
+            };
+            AddToOrCreateNewApiRequestHeadersCollectionToScenarioContext(headers);
+        }
+
+        protected void AddToOrCreateNewApiRequestHeadersCollectionToScenarioContext(Dictionary<string, string> headers)
+        {
+            headers.Should().NotBeNull();
+            var apiRequestHeaders = GetScenarioContextItem<Dictionary<string, string>>(TestingSpecflowContextKeys.ApiRequestHeadersKey);
+            if (apiRequestHeaders == null)
+            {
+                apiRequestHeaders = new Dictionary<string, string>(headers);
+                UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiRequestHeadersKey, apiRequestHeaders);
+                return;
+            }
+            foreach (var header in headers)
+            {
+                if (apiRequestHeaders.ContainsKey(header.Key))
+                {
+                    var errorMessage = $"Duplicate key found in {nameof(apiRequestHeaders)} for '{header.Key}'";
+                    TestConsole.WriteLine("\t" + errorMessage);
+                    throw new ArgumentException(errorMessage, nameof(headers));
+                }
+                apiRequestHeaders.Add(header.Key, header.Value);
+            }
+            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiRequestHeadersKey, apiRequestHeaders);
+        }
+
+        #region HttpClient Methods
+
         private Task<HttpResponseMessage> CallTheAPIUsingPOSTTheUrlAndTheHeaders(string apiUrl, Dictionary<string, string> apiRequestHeaders)
         {
             return new Task<HttpResponseMessage>(() =>
@@ -119,20 +154,10 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             if (apiRateLimitedHttpResponse == null)
             {
                 TestConsole.WriteLine("\tNo rate limited response found");
+                //Return last completed response
+                apiRateLimitedHttpResponse = apiCallTasks.OrderByDescending(task => task.Result.Headers.Date.GetValueOrDefault()).First().Result;
             }
             UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, apiRateLimitedHttpResponse);
-        }
-
-        protected void CallTheAPIUsingPOSTTheUrlAndTheRequest()
-        {
-            var apiUrl = GetScenarioContextItem<string>(TestingSpecflowContextKeys.ApiFullUrlKey);
-            apiUrl.Should().NotBeNullOrWhiteSpace();
-            var apiRequest = GetScenarioContextItem<object>(TestingSpecflowContextKeys.ApiRequestKey);
-            apiRequest.Should().NotBeNull();
-            var apiRequestTask = CallTheAPIUsingPOSTTheUrlAndTheRequest(apiUrl, apiRequest);
-            apiRequestTask.Start();
-            apiRequestTask.Wait();
-            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, apiRequestTask.Result);
         }
 
         private Task<HttpResponseMessage> CallTheAPIUsingPOSTTheUrlAndTheRequest(string apiUrl, object apiRequest)
@@ -152,6 +177,18 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
                     throw new TimeoutException($"POST Request (with body) to '{apiUrl}' timed out ({ApiCallTimeout} ms).");
                 }
             });
+        }
+
+        protected void CallTheAPIUsingPOSTTheUrlAndTheRequest()
+        {
+            var apiUrl = GetScenarioContextItem<string>(TestingSpecflowContextKeys.ApiFullUrlKey);
+            apiUrl.Should().NotBeNullOrWhiteSpace();
+            var apiRequest = GetScenarioContextItem<object>(TestingSpecflowContextKeys.ApiRequestKey);
+            apiRequest.Should().NotBeNull();
+            var apiRequestTask = CallTheAPIUsingPOSTTheUrlAndTheRequest(apiUrl, apiRequest);
+            apiRequestTask.Start();
+            apiRequestTask.Wait();
+            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, apiRequestTask.Result);
         }
 
         protected void CallTheAPIUsingPOSTTheUrlAndTheRequestToTriggerAPIRateLimiting()
@@ -175,6 +212,8 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             if (apiRateLimitedHttpResponse == null)
             {
                 TestConsole.WriteLine("\tNo rate limited response found");
+                //Return last completed response
+                apiRateLimitedHttpResponse = apiCallTasks.OrderByDescending(task => task.Result.Headers.Date.GetValueOrDefault()).First().Result;
             }
             UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, apiRateLimitedHttpResponse);
         }
@@ -215,6 +254,35 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             apiRequestTask.Start();
             apiRequestTask.Wait();
             UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, apiRequestTask.Result);
+        }
+
+        protected void CallTheAPIUsingPOSTTheUrlTheHeadersAndTheRequestToTriggerAPIRateLimiting()
+        {
+            var apiUrl = GetScenarioContextItem<string>(TestingSpecflowContextKeys.ApiFullUrlKey);
+            apiUrl.Should().NotBeNullOrWhiteSpace();
+            var apiRequestHeaders = GetScenarioContextItem<Dictionary<string, string>>(TestingSpecflowContextKeys.ApiRequestHeadersKey);
+            apiRequestHeaders.Should().NotBeNull().And.NotBeEmpty();
+            var apiRequest = GetScenarioContextItem<object>(TestingSpecflowContextKeys.ApiRequestKey);
+            apiRequest.Should().NotBeNull();
+            var apiRateLimitingTimeInterval = GetScenarioContextItem<ApiRateLimitingTimeInterval>(TestingSpecflowContextKeys.ApiRateLimitingTimeIntervalKey);
+            apiRateLimitingTimeInterval.Should().NotBeNull();
+
+            var numberOfCallsToTriggerApiRateLimiting = apiRateLimitingTimeInterval.RequestsAllowed + 1;
+            var apiCallTasks = new List<Task<HttpResponseMessage>>();
+            for (int i = 0; i < numberOfCallsToTriggerApiRateLimiting; i++)
+            {
+                apiCallTasks.Add(CallTheAPIUsingPOSTTheUrlTheHeadersAndTheRequest(apiUrl, apiRequest, apiRequestHeaders));
+            }
+            apiCallTasks.ForEach(task => task.Start());
+            Task.WaitAll(apiCallTasks.ToArray());
+            var apiRateLimitedHttpResponse = apiCallTasks.FirstOrDefault(task => task.Result.StatusCode == HttpStatusCode.TooManyRequests)?.Result;
+            if (apiRateLimitedHttpResponse == null)
+            {
+                TestConsole.WriteLine("\tNo rate limited response found");
+                //Return last completed response
+                apiRateLimitedHttpResponse = apiCallTasks.OrderByDescending(task => task.Result.Headers.Date.GetValueOrDefault()).First().Result;
+            }
+            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, apiRateLimitedHttpResponse);
         }
 
         private Task<HttpResponseMessage> CallTheAPIUsingGETTheUrlAndTheHeaders(string apiUrl, Dictionary<string, string> apiRequestHeaders)
@@ -273,6 +341,8 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             if (apiRateLimitedHttpResponse == null)
             {
                 TestConsole.WriteLine("\tNo rate limited response found");
+                //Return last completed response
+                apiRateLimitedHttpResponse = apiCallTasks.OrderByDescending(task => task.Result.Headers.Date.GetValueOrDefault()).First().Result;
             }
             UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, apiRateLimitedHttpResponse);
         }
@@ -324,6 +394,8 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             if (apiRateLimitedHttpResponse == null)
             {
                 TestConsole.WriteLine("\tNo rate limited response found");
+                //Return last completed response
+                apiRateLimitedHttpResponse = apiCallTasks.OrderByDescending(task => task.Result.Headers.Date.GetValueOrDefault()).First().Result;
             }
             UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, apiRateLimitedHttpResponse);
         }
@@ -356,6 +428,34 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, apiRequestTask.Result);
         }
 
+        protected void CallTheAPIUsingPOSTAndTheUrlToTriggerAPIRateLimiting()
+        {
+            var apiUrl = GetScenarioContextItem<string>(TestingSpecflowContextKeys.ApiFullUrlKey);
+            apiUrl.Should().NotBeNullOrWhiteSpace();
+            var apiRateLimitingTimeInterval = GetScenarioContextItem<ApiRateLimitingTimeInterval>(TestingSpecflowContextKeys.ApiRateLimitingTimeIntervalKey);
+            apiRateLimitingTimeInterval.Should().NotBeNull();
+
+            var numberOfCallsToTriggerApiRateLimiting = apiRateLimitingTimeInterval.RequestsAllowed + 1;
+            var apiCallTasks = new List<Task<HttpResponseMessage>>();
+            for (int i = 0; i < numberOfCallsToTriggerApiRateLimiting; i++)
+            {
+                apiCallTasks.Add(CallTheAPIUsingPOSTAndTheUrl(apiUrl));
+            }
+            apiCallTasks.ForEach(task => task.Start());
+            Task.WaitAll(apiCallTasks.ToArray());
+            var apiRateLimitedHttpResponse = apiCallTasks.FirstOrDefault(task => task.Result.StatusCode == HttpStatusCode.TooManyRequests)?.Result;
+            if (apiRateLimitedHttpResponse == null)
+            {
+                TestConsole.WriteLine("\tNo rate limited response found");
+                //Return last completed response
+                apiRateLimitedHttpResponse = apiCallTasks.OrderByDescending(task => task.Result.Headers.Date.GetValueOrDefault()).First().Result;
+            }
+            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, apiRateLimitedHttpResponse);
+        }
+
+        #endregion
+
+        #region Assertion Methods
         protected void AssertTheAPIHttpResponseIsSuccessful()
         {
             var apiHttpResponseMessage = GetScenarioContextItem<HttpResponseMessage>(TestingSpecflowContextKeys.ApiResponseKey);
@@ -393,6 +493,26 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             apiHttpResponseMessage.IsSuccessStatusCode.Should().BeFalse();
             apiHttpResponseMessage.StatusCode.Should().Be(HttpStatusCode.TooManyRequests);
             apiHttpResponseMessage.Content.Should().NotBeNull();
+        }
+
+        protected void AssertTheAPIHttpHeadersShowRateLimitingWasApplied()
+        {
+            var apiHttpResponseMessage = GetScenarioContextItem<HttpResponseMessage>(TestingSpecflowContextKeys.ApiResponseKey);
+            apiHttpResponseMessage.Should().NotBeNull();
+            apiHttpResponseMessage.Headers.Should().NotBeNullOrEmpty();
+            apiHttpResponseMessage.Headers.Contains(TestingHeaderKeys.RateLimitLimit).Should().BeTrue();
+            apiHttpResponseMessage.Headers.Contains(TestingHeaderKeys.RateLimitRemaining).Should().BeTrue();
+            apiHttpResponseMessage.Headers.Contains(TestingHeaderKeys.RateLimitReset).Should().BeTrue();
+        }
+
+        protected void AssertTheAPIHttpHeadersShowRateLimitingWasNotApplied()
+        {
+            var apiHttpResponseMessage = GetScenarioContextItem<HttpResponseMessage>(TestingSpecflowContextKeys.ApiResponseKey);
+            apiHttpResponseMessage.Should().NotBeNull();
+            apiHttpResponseMessage.Headers.Should().NotBeNullOrEmpty();
+            apiHttpResponseMessage.Headers.Contains(TestingHeaderKeys.RateLimitLimit).Should().BeFalse();
+            apiHttpResponseMessage.Headers.Contains(TestingHeaderKeys.RateLimitRemaining).Should().BeFalse();
+            apiHttpResponseMessage.Headers.Contains(TestingHeaderKeys.RateLimitReset).Should().BeFalse();
         }
 
         protected void AssertTheAPIHttpDomainResponseDataIsCorrect()
@@ -438,7 +558,8 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             timeInterval.Should().NotBeNull();
             var expected = string.Format(TestingConstants.ApiRateLimitingResponseMessageFormat, timeInterval.GetApiRateLimitingResponseBodySuffix());
             AssertTheAPIHTTPResponseContentIsExpected(expected);
-        }
+        } 
+        #endregion
 
         protected string GetTheAuthorizationTokenFromHttpResponseMessage()
         {
