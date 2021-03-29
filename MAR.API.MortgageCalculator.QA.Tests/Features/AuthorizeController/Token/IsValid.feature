@@ -74,3 +74,12 @@ Scenario: Token IsValid is not successful for not passing any headers
 	Then the API HTTP response is bad request
 	And the API HTTP domain response data is correct
 	And the API HTTP response Data is null
+
+@AuthorizeControllerTests @RateLimitingTests
+Scenario: Token IsValid returns too many requests
+	Given I want to call the API AuthorizeController 'token/isvalid' resource
+	And with the incorrect authorization token for API authorization headers setup for an endpoint requiring authorization
+	And I am API rate limited to '15 per 5 s'
+	When I call the API using GET, the url and the headers to trigger API rate limiting
+	Then the API HTTP response is too many requests
+	And the API HTTP response Content is the API rate limited message from ScenarioContext

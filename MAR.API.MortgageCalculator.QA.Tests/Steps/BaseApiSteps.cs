@@ -98,6 +98,31 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, apiRequestTask.Result);
         }
 
+        protected void CallTheAPIUsingPOSTTheUrlAndTheHeadersToTriggerAPIRateLimiting()
+        {
+            var apiUrl = GetScenarioContextItem<string>(TestingSpecflowContextKeys.ApiFullUrlKey);
+            apiUrl.Should().NotBeNullOrWhiteSpace();
+            var apiRequestHeaders = GetScenarioContextItem<Dictionary<string, string>>(TestingSpecflowContextKeys.ApiRequestHeadersKey);
+            apiRequestHeaders.Should().NotBeNull().And.NotBeEmpty();
+            var apiRateLimitingTimeInterval = GetScenarioContextItem<ApiRateLimitingTimeInterval>(TestingSpecflowContextKeys.ApiRateLimitingTimeIntervalKey);
+            apiRateLimitingTimeInterval.Should().NotBeNull();
+
+            var numberOfCallsToTriggerApiRateLimiting = apiRateLimitingTimeInterval.RequestsAllowed + 1;
+            var apiCallTasks = new List<Task<HttpResponseMessage>>();
+            for (int i = 0; i < numberOfCallsToTriggerApiRateLimiting; i++)
+            {
+                apiCallTasks.Add(CallTheAPIUsingPOSTTheUrlAndTheHeaders(apiUrl, apiRequestHeaders));
+            }
+            apiCallTasks.ForEach(task => task.Start());
+            Task.WaitAll(apiCallTasks.ToArray());
+            var apiRateLimitedHttpResponse = apiCallTasks.FirstOrDefault(task => task.Result.StatusCode == HttpStatusCode.TooManyRequests)?.Result;
+            if (apiRateLimitedHttpResponse == null)
+            {
+                TestConsole.WriteLine("\tNo rate limited response found");
+            }
+            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, apiRateLimitedHttpResponse);
+        }
+
         protected void CallTheAPIUsingPOSTTheUrlAndTheRequest()
         {
             var apiUrl = GetScenarioContextItem<string>(TestingSpecflowContextKeys.ApiFullUrlKey);
@@ -227,6 +252,31 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, apiRequestTask.Result);
         }
 
+        protected void CallTheAPIUsingGETTheUrlAndTheHeadersToTriggerAPIRateLimiting()
+        {
+            var apiUrl = GetScenarioContextItem<string>(TestingSpecflowContextKeys.ApiFullUrlKey);
+            apiUrl.Should().NotBeNullOrWhiteSpace();
+            var apiRequestHeaders = GetScenarioContextItem<Dictionary<string, string>>(TestingSpecflowContextKeys.ApiRequestHeadersKey);
+            apiRequestHeaders.Should().NotBeNull().And.NotBeEmpty();
+            var apiRateLimitingTimeInterval = GetScenarioContextItem<ApiRateLimitingTimeInterval>(TestingSpecflowContextKeys.ApiRateLimitingTimeIntervalKey);
+            apiRateLimitingTimeInterval.Should().NotBeNull();
+
+            var numberOfCallsToTriggerApiRateLimiting = apiRateLimitingTimeInterval.RequestsAllowed + 1;
+            var apiCallTasks = new List<Task<HttpResponseMessage>>();
+            for (int i = 0; i < numberOfCallsToTriggerApiRateLimiting; i++)
+            {
+                apiCallTasks.Add(CallTheAPIUsingGETTheUrlAndTheHeaders(apiUrl, apiRequestHeaders));
+            }
+            apiCallTasks.ForEach(task => task.Start());
+            Task.WaitAll(apiCallTasks.ToArray());
+            var apiRateLimitedHttpResponse = apiCallTasks.FirstOrDefault(task => task.Result.StatusCode == HttpStatusCode.TooManyRequests)?.Result;
+            if (apiRateLimitedHttpResponse == null)
+            {
+                TestConsole.WriteLine("\tNo rate limited response found");
+            }
+            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, apiRateLimitedHttpResponse);
+        }
+
         private Task<HttpResponseMessage> CallTheAPIUsingGETAndTheUrl(string apiUrl)
         {
             return new Task<HttpResponseMessage>(() =>
@@ -253,6 +303,29 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             apiRequestTask.Start();
             apiRequestTask.Wait();
             UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, apiRequestTask.Result);
+        }
+
+        protected void CallTheAPIUsingGETAndTheUrlToTriggerAPIRateLimiting()
+        {
+            var apiUrl = GetScenarioContextItem<string>(TestingSpecflowContextKeys.ApiFullUrlKey);
+            apiUrl.Should().NotBeNullOrWhiteSpace();
+            var apiRateLimitingTimeInterval = GetScenarioContextItem<ApiRateLimitingTimeInterval>(TestingSpecflowContextKeys.ApiRateLimitingTimeIntervalKey);
+            apiRateLimitingTimeInterval.Should().NotBeNull();
+
+            var numberOfCallsToTriggerApiRateLimiting = apiRateLimitingTimeInterval.RequestsAllowed + 1;
+            var apiCallTasks = new List<Task<HttpResponseMessage>>();
+            for (int i = 0; i < numberOfCallsToTriggerApiRateLimiting; i++)
+            {
+                apiCallTasks.Add(CallTheAPIUsingGETAndTheUrl(apiUrl));
+            }
+            apiCallTasks.ForEach(task => task.Start());
+            Task.WaitAll(apiCallTasks.ToArray());
+            var apiRateLimitedHttpResponse = apiCallTasks.FirstOrDefault(task => task.Result.StatusCode == HttpStatusCode.TooManyRequests)?.Result;
+            if (apiRateLimitedHttpResponse == null)
+            {
+                TestConsole.WriteLine("\tNo rate limited response found");
+            }
+            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiResponseKey, apiRateLimitedHttpResponse);
         }
 
         private Task<HttpResponseMessage> CallTheAPIUsingPOSTAndTheUrl(string apiUrl)

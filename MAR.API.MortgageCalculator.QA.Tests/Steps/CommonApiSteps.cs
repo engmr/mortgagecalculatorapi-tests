@@ -126,5 +126,23 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             CallTheAPIUsingPOSTTheUrlAndTheRequestToTriggerAPIRateLimiting();
         }
 
+        [When(@"I call the API using POST, the url and the headers to trigger API rate limiting")]
+        public void WhenICallTheAPIUsingPOSTTheUrlAndTheHeadersToTriggerAPIRateLimiting()
+        {
+            CallTheAPIUsingPOSTTheUrlAndTheHeadersToTriggerAPIRateLimiting();
+        }
+
+        [When(@"I call the API using GET and the url to trigger API rate limiting")]
+        public void WhenICallTheAPIUsingGETAndTheUrlToTriggerAPIRateLimiting()
+        {
+            CallTheAPIUsingGETAndTheUrlToTriggerAPIRateLimiting();
+        }
+
+        [When(@"I call the API using GET, the url and the headers to trigger API rate limiting")]
+        public void WhenICallTheAPIUsingGETTheUrlAndTheHeadersToTriggerAPIRateLimiting()
+        {
+            CallTheAPIUsingGETTheUrlAndTheHeadersToTriggerAPIRateLimiting();
+        }
+
     }
 }
