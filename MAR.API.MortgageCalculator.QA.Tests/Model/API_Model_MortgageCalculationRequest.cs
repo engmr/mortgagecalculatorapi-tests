@@ -1,10 +1,20 @@
-﻿namespace MAR.API.MortgageCalculator.QA.Tests.Model
+﻿using System;
+
+namespace MAR.API.MortgageCalculator.QA.Tests.Model
 {
     /// <summary>
     /// Comes from MAR.API.MortgageCalculator.Model project
     /// </summary>
     public class MortgageCalculationRequest
     {
+        public MortgageCalculationRequest()
+        {
+            RequestId = Guid.NewGuid();
+        }
+        /// <summary>
+        /// Unique id for reference purposes
+        /// </summary>
+        public Guid RequestId { get; set; }
         /// <summary>
         /// Purchase / sales price of home
         /// </summary>

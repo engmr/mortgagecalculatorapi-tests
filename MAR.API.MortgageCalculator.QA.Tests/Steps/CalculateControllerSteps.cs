@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using MAR.API.MortgageCalculator.QA.Tests.Model;
+using System.Collections.Generic;
 using System.Linq;
 using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Assist;
@@ -28,6 +29,61 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiRequestKey, request);
         }
 
+        [Given(@"I have created the API BulkMortgageCalculationRequest from ScenarioContext data")]
+        public void GivenIHaveCreatedTheAPIBulkMortgageCalculationRequestFromScenarioContextData()
+        {
+            var requests = GetScenarioContextItem<List<MortgageCalculationRequest>>(TestingSpecflowContextKeys.BulkRequestInputRequestsKey);
+            requests.Should().NotBeNullOrEmpty();
+            var request = new BulkMortgageCalcuationRequest()
+            {
+                Requests = requests
+            };
+            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ApiRequestKey, request);
+        }
+
+
+        [Given(@"I have these API MortgageCalculationRequests for a bulk request")]
+        public void GivenIHaveTheseAPIMortgageCalculationRequestsForABulkRequest(Table table)
+        {
+            var requests = table.CreateSet<MortgageCalculationRequest>().ToList();
+            UpsertScenarioContextEntry(TestingSpecflowContextKeys.BulkRequestInputRequestsKey, requests);
+        }
+
+        [Given(@"I have these API MortgageCalculationResults for a bulk request")]
+        public void GivenIHaveTheseAPIMortgageCalculationResultsForABulkRequest(Table table)
+        {
+            var responses = table.CreateSet<MortgageCalculationResult>().ToList();
+            UpsertScenarioContextEntry(TestingSpecflowContextKeys.BulkRequestInputResponsesKey, responses);
+        }
+
+        /// <summary>
+        /// Relies on input never being sorted from when it was input from the feature file
+        /// </summary>
+        [Given(@"I merged the API mortgage calculation Requests and Responses into the expected MortgageCalculationResults collection")]
+        public void GivenIMergedTheAPIMortgageCalculationRequestsAndResponsesIntoTheExpectedMortgageCalculationResultsCollection()
+        {
+            var requests = GetScenarioContextItem<List<MortgageCalculationRequest>>(TestingSpecflowContextKeys.BulkRequestInputRequestsKey);
+            var responses = GetScenarioContextItem<List<MortgageCalculationResult>>(TestingSpecflowContextKeys.BulkRequestInputResponsesKey);
+            requests.Should().NotBeNullOrEmpty();
+            responses.Should().NotBeNullOrEmpty();
+            requests.Count.Should().Be(responses.Count);
+
+            var mergedResponses = new List<MortgageCalculationResult>();
+            for (int i = 0; i < requests.Count; i++)
+            {
+                var inputResponse = responses[i];
+                mergedResponses.Add(new MortgageCalculationResult(requests[i])
+                {
+                    DownPayment = inputResponse.DownPayment,
+                    HomeownersInsurancePaymentMonthly = inputResponse.HomeownersInsurancePaymentMonthly,
+                    MortgagePaymentyMonthly = inputResponse.MortgagePaymentyMonthly,
+                    PropertyTaxPaymentMonthly = inputResponse.PropertyTaxPaymentMonthly,
+                    TermInterestPaid = inputResponse.TermInterestPaid
+                });
+            }
+            UpsertScenarioContextEntry(TestingSpecflowContextKeys.ExpectedBulkResponseData, mergedResponses);
+        }
+
         [Then(@"the API HTTP response Data matches this successful MortgageCalculationResult")]
         public void ThenTheAPIHTTPResponseDataMatchesThisSuccessfulMortgageCalculationResult(Table table)
         {
@@ -49,10 +105,34 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
             AssertThatResponseDataAreMatching(expectedResponse.Data, actualResponse.Data);
         }
 
+        [Then(@"the API HTTP response Data matches the expected MortgageCalculationResults collection")]
+        public void ThenTheAPIHTTPResponseDataMatchesTheExpectedMortgageCalculationResultsCollection()
+        {
+            var expectedResults = GetScenarioContextItem<List<MortgageCalculationResult>>(TestingSpecflowContextKeys.ExpectedBulkResponseData);
+            expectedResults.Should().NotBeNull();
+            var apiResponse = GetBulkMortgageCalculationResultApiResponseFromHttpResponseMessage();
+            apiResponse.Should().NotBeNull();
+            
+            if (!expectedResults.Any())
+            {
+                apiResponse.Data.Should().BeEmpty();
+            }
+            else
+            {
+                foreach (var expectedResult in expectedResults)
+                {
+                    var actualResult = apiResponse.Data.SingleOrDefault(resp => resp.Request.RequestId == expectedResult.Request.RequestId);
+                    actualResult.Should().NotBeNull();
+                    AssertThatResponseDataAreMatching(expectedResult, actualResult);
+                }
+            }
+        }
+
         private void AssertThatResponseDataAreMatching(MortgageCalculationResult expectedResult, MortgageCalculationResult actualResult)
         {
             //Request
             actualResult.Request.Should().NotBeNull();
+            actualResult.Request.RequestId.Should().NotBeEmpty();
             actualResult.IsSuccessful.Should().Be(expectedResult.IsSuccessful);
             actualResult.Request.APR.Should().Be(expectedResult.Request.APR);
             actualResult.Request.DownPaymentPercent.Should().Be(expectedResult.Request.DownPaymentPercent);
