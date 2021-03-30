@@ -9,5 +9,8 @@
         public const string ApiResponseKey = "ApiResponseKey";
         public const string AppSettingsKey = "AppSettingsKey";
         public const string AuthorizationTokenKey = "AuthorizationTokenKey";
+        public const string BulkRequestInputRequestsKey = "BulkRequestInputRequestsKey";
+        public const string BulkRequestInputResponsesKey = "BulkRequestInputResponsesKey";
+        public const string ExpectedBulkResponseData = "ExpectedMortgageCalculationResultsKey";
     }
 }

@@ -118,32 +118,32 @@ this.ScenarioInitialize(scenarioInfo);
 #line 7
  testRunner.And("with the ClientId bypass API rate limiting header added to the headers", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table1 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table3 = new TechTalk.SpecFlow.Table(new string[] {
                             "Field",
                             "Value"});
-                table1.AddRow(new string[] {
+                table3.AddRow(new string[] {
                             "PurchasePrice",
                             "100000.00"});
-                table1.AddRow(new string[] {
+                table3.AddRow(new string[] {
                             "APR",
                             "2.75"});
-                table1.AddRow(new string[] {
+                table3.AddRow(new string[] {
                             "LoanTermYears",
                             "30"});
-                table1.AddRow(new string[] {
+                table3.AddRow(new string[] {
                             "DownPaymentPercent",
                             "20"});
-                table1.AddRow(new string[] {
+                table3.AddRow(new string[] {
                             "PropertyTaxRate",
                             "1.15"});
-                table1.AddRow(new string[] {
+                table3.AddRow(new string[] {
                             "HomeownerInsuranceRate",
                             "0.22"});
-                table1.AddRow(new string[] {
+                table3.AddRow(new string[] {
                             "HOAMonthly",
                             "10"});
 #line 8
- testRunner.And("with this API MortgageCalculationRequest", ((string)(null)), table1, "And ");
+ testRunner.And("with this API MortgageCalculationRequest", ((string)(null)), table3, "And ");
 #line hidden
 #line 17
  testRunner.When("I call the API using POST, the url, the headers and the request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -154,26 +154,26 @@ this.ScenarioInitialize(scenarioInfo);
 #line 19
  testRunner.And("the API HTTP domain response data is correct", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table2 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table4 = new TechTalk.SpecFlow.Table(new string[] {
                             "Field",
                             "Value"});
-                table2.AddRow(new string[] {
+                table4.AddRow(new string[] {
                             "MortgagePaymentyMonthly",
                             "326.59"});
-                table2.AddRow(new string[] {
+                table4.AddRow(new string[] {
                             "PropertyTaxPaymentMonthly",
                             "95.83"});
-                table2.AddRow(new string[] {
+                table4.AddRow(new string[] {
                             "HomeownersInsurancePaymentMonthly",
                             "18.33"});
-                table2.AddRow(new string[] {
+                table4.AddRow(new string[] {
                             "DownPayment",
                             "20000"});
-                table2.AddRow(new string[] {
+                table4.AddRow(new string[] {
                             "TermInterestPaid",
                             "37573.46"});
 #line 20
- testRunner.And("the API HTTP response Data matches this successful MortgageCalculationResult", ((string)(null)), table2, "And ");
+ testRunner.And("the API HTTP response Data matches this successful MortgageCalculationResult", ((string)(null)), table4, "And ");
 #line hidden
             }
             this.ScenarioCleanup();
@@ -215,32 +215,32 @@ this.ScenarioInitialize(scenarioInfo);
 #line 31
  testRunner.And("with the ClientId bypass API rate limiting header added to the headers", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table3 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table5 = new TechTalk.SpecFlow.Table(new string[] {
                             "Field",
                             "Value"});
-                table3.AddRow(new string[] {
+                table5.AddRow(new string[] {
                             "PurchasePrice",
                             "100000.00"});
-                table3.AddRow(new string[] {
+                table5.AddRow(new string[] {
                             "APR",
                             "2.75"});
-                table3.AddRow(new string[] {
+                table5.AddRow(new string[] {
                             "LoanTermYears",
                             "30"});
-                table3.AddRow(new string[] {
+                table5.AddRow(new string[] {
                             "DownPaymentPercent",
                             "20"});
-                table3.AddRow(new string[] {
+                table5.AddRow(new string[] {
                             "PropertyTaxRate",
                             "1.15"});
-                table3.AddRow(new string[] {
+                table5.AddRow(new string[] {
                             "HomeownerInsuranceRate",
                             "0.22"});
-                table3.AddRow(new string[] {
+                table5.AddRow(new string[] {
                             "HOAMonthly",
                             "0"});
 #line 32
- testRunner.And("with this API MortgageCalculationRequest", ((string)(null)), table3, "And ");
+ testRunner.And("with this API MortgageCalculationRequest", ((string)(null)), table5, "And ");
 #line hidden
 #line 41
  testRunner.When("I call the API using POST, the url, the headers and the request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -251,26 +251,26 @@ this.ScenarioInitialize(scenarioInfo);
 #line 43
  testRunner.And("the API HTTP domain response data is correct", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table4 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table6 = new TechTalk.SpecFlow.Table(new string[] {
                             "Field",
                             "Value"});
-                table4.AddRow(new string[] {
+                table6.AddRow(new string[] {
                             "MortgagePaymentyMonthly",
                             "326.59"});
-                table4.AddRow(new string[] {
+                table6.AddRow(new string[] {
                             "PropertyTaxPaymentMonthly",
                             "95.83"});
-                table4.AddRow(new string[] {
+                table6.AddRow(new string[] {
                             "HomeownersInsurancePaymentMonthly",
                             "18.33"});
-                table4.AddRow(new string[] {
+                table6.AddRow(new string[] {
                             "DownPayment",
                             "20000"});
-                table4.AddRow(new string[] {
+                table6.AddRow(new string[] {
                             "TermInterestPaid",
                             "37573.46"});
 #line 44
- testRunner.And("the API HTTP response Data matches this successful MortgageCalculationResult", ((string)(null)), table4, "And ");
+ testRunner.And("the API HTTP response Data matches this successful MortgageCalculationResult", ((string)(null)), table6, "And ");
 #line hidden
             }
             this.ScenarioCleanup();
@@ -320,32 +320,32 @@ this.ScenarioInitialize(scenarioInfo);
 #line 56
  testRunner.And("I am API rate limited to \'2 per 10 s\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table5 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table7 = new TechTalk.SpecFlow.Table(new string[] {
                             "Field",
                             "Value"});
-                table5.AddRow(new string[] {
+                table7.AddRow(new string[] {
                             "PurchasePrice",
                             "100000.00"});
-                table5.AddRow(new string[] {
+                table7.AddRow(new string[] {
                             "APR",
                             "2.75"});
-                table5.AddRow(new string[] {
+                table7.AddRow(new string[] {
                             "LoanTermYears",
                             "30"});
-                table5.AddRow(new string[] {
+                table7.AddRow(new string[] {
                             "DownPaymentPercent",
                             "20"});
-                table5.AddRow(new string[] {
+                table7.AddRow(new string[] {
                             "PropertyTaxRate",
                             "1.15"});
-                table5.AddRow(new string[] {
+                table7.AddRow(new string[] {
                             "HomeownerInsuranceRate",
                             "0.22"});
-                table5.AddRow(new string[] {
+                table7.AddRow(new string[] {
                             "HOAMonthly",
                             "0"});
 #line 57
- testRunner.And("with this API MortgageCalculationRequest", ((string)(null)), table5, "And ");
+ testRunner.And("with this API MortgageCalculationRequest", ((string)(null)), table7, "And ");
 #line hidden
 #line 66
  testRunner.When("I call the API using POST, the url, the headers and the request to trigger API ra" +
@@ -360,26 +360,26 @@ this.ScenarioInitialize(scenarioInfo);
 #line 69
  testRunner.And("the API HTTP domain response data is correct", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table6 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table8 = new TechTalk.SpecFlow.Table(new string[] {
                             "Field",
                             "Value"});
-                table6.AddRow(new string[] {
+                table8.AddRow(new string[] {
                             "MortgagePaymentyMonthly",
                             "326.59"});
-                table6.AddRow(new string[] {
+                table8.AddRow(new string[] {
                             "PropertyTaxPaymentMonthly",
                             "95.83"});
-                table6.AddRow(new string[] {
+                table8.AddRow(new string[] {
                             "HomeownersInsurancePaymentMonthly",
                             "18.33"});
-                table6.AddRow(new string[] {
+                table8.AddRow(new string[] {
                             "DownPayment",
                             "20000"});
-                table6.AddRow(new string[] {
+                table8.AddRow(new string[] {
                             "TermInterestPaid",
                             "37573.46"});
 #line 70
- testRunner.And("the API HTTP response Data matches this successful MortgageCalculationResult", ((string)(null)), table6, "And ");
+ testRunner.And("the API HTTP response Data matches this successful MortgageCalculationResult", ((string)(null)), table8, "And ");
 #line hidden
             }
             this.ScenarioCleanup();
@@ -423,32 +423,32 @@ this.ScenarioInitialize(scenarioInfo);
 #line 81
  testRunner.And("I am API rate limited to \'2 per 10 s\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table7 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table9 = new TechTalk.SpecFlow.Table(new string[] {
                             "Field",
                             "Value"});
-                table7.AddRow(new string[] {
+                table9.AddRow(new string[] {
                             "PurchasePrice",
                             "100000.00"});
-                table7.AddRow(new string[] {
+                table9.AddRow(new string[] {
                             "APR",
                             "2.75"});
-                table7.AddRow(new string[] {
+                table9.AddRow(new string[] {
                             "LoanTermYears",
                             "30"});
-                table7.AddRow(new string[] {
+                table9.AddRow(new string[] {
                             "DownPaymentPercent",
                             "20"});
-                table7.AddRow(new string[] {
+                table9.AddRow(new string[] {
                             "PropertyTaxRate",
                             "1.15"});
-                table7.AddRow(new string[] {
+                table9.AddRow(new string[] {
                             "HomeownerInsuranceRate",
                             "0.22"});
-                table7.AddRow(new string[] {
+                table9.AddRow(new string[] {
                             "HOAMonthly",
                             "0"});
 #line 82
- testRunner.And("with this API MortgageCalculationRequest", ((string)(null)), table7, "And ");
+ testRunner.And("with this API MortgageCalculationRequest", ((string)(null)), table9, "And ");
 #line hidden
 #line 91
  testRunner.When("I call the API using POST, the url and the request to trigger API rate limiting", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");

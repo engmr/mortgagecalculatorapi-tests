@@ -642,6 +642,22 @@ namespace MAR.API.MortgageCalculator.QA.Tests.Steps
         }
 
         /// <summary>
+        /// Returns <see cref="ApiResponse{List<MortgageCalculationResult>}"/> from an <see cref="HttpResponseMessage"/>
+        /// </summary>
+        /// <returns></returns>
+        protected ApiResponse<List<MortgageCalculationResult>> GetBulkMortgageCalculationResultApiResponseFromHttpResponseMessage()
+        {
+            var apiHttpResponseMessage = GetScenarioContextItem<HttpResponseMessage>(TestingSpecflowContextKeys.ApiResponseKey);
+            apiHttpResponseMessage.Should().NotBeNull();
+            var readTask = Task.Run(() => apiHttpResponseMessage.Content.ReadAsStringAsync());
+            readTask.Wait(2000);
+            var httpResponseJson = readTask.Result;
+            httpResponseJson.Should().NotBeNullOrEmpty();
+
+            return JsonConvert.DeserializeObject<ApiResponse<List<MortgageCalculationResult>>>(httpResponseJson);
+        }
+
+        /// <summary>
         /// Add or update a ScenarioContext entry
         /// </summary>
         /// <param name="key"></param>
